@@ -438,7 +438,11 @@ function rProfile(mc){
     <p style="color:var(--gold-dim);font-size:.8rem;margin-bottom:4px;font-weight:600">${rnk?rnk.icon+' '+rnk.name:'عضو'}</p>
     <p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone||'غير محدد'}</p>
     <p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
-    <button class="btn-outline btn-sm" style="width:100%;justify-content:center" onclick="ghome()">العودة للرئيسية</button>
+    <hr style="border-color:var(--line);margin:16px 0">
+    <div class="fg"><input type="password" id="cpOld" placeholder="كلمة السر القديمة" style="font-size:.85rem;padding:8px 10px"></div>
+    <div class="fg"><input type="password" id="cpNew" placeholder="كلمة السر الجديدة" style="font-size:.85rem;padding:8px 10px"></div>
+    <button class="btn-gold btn-sm" style="width:100%;justify-content:center" onclick="changePw()">🔑 تغيير كلمة السر</button>
+    <button class="btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="ghome()">العودة للرئيسية</button>
   </div></div></div>`
 }
 
@@ -452,6 +456,14 @@ async function uploadAvatar(input){
     toast('✅ تم تغيير الصورة')
     if(S.page==='profile')rProfile($('main'))
   }catch(err){toast('⚠️ فشل رفع الصورة: '+err.message)}
+}
+async function changePw(){
+  const old=$('cpOld')?.value,pw=$('cpNew')?.value
+  if(!old||!pw){toast('أدخل كلمة السر القديمة والجديدة');return}
+  try{
+    await api('/auth/change-password',{method:'POST',body:JSON.stringify({oldPassword:old,newPassword:pw})})
+    $('cpOld').value='';$('cpNew').value='';toast('✅ تم تغيير كلمة السر')
+  }catch(err){toast('⚠️ '+err.message)}
 }
 
 // ===== SHOP =====

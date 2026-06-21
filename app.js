@@ -79,6 +79,17 @@ app.get('/api/auth/me', auth, (req, res) => {
   res.json(user);
 });
 
+app.post('/api/auth/change-password', auth, async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) return res.status(400).json({ error: 'Old and new password required' });
+  if (newPassword.length < 4) return res.status(400).json({ error: 'كلمة السر الجديدة قصيرة' });
+  const user = one('SELECT password_hash FROM users WHERE id=?', [req.user.id]);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  if (!bcrypt.compareSync(oldPassword, user.password_hash)) return res.status(401).json({ error: 'كلمة السر القديمة غير صحيحة' });
+  const hash = bcrypt.hashSync(newPassword, 10);
+  run('UPDATE users SET password_hash=? WHERE id=?', [hash, req.user.id]);
+  await saveDBAsync(); res.json({ ok: true });
+});
 app.post('/api/auth/master', (req, res) => {
   if (req.body.password !== MASTER_PASSWORD) return res.status(401).json({ error: 'Wrong master password' });
   const token = jwt.sign({ id: 'master', nickname: 'Master', role: 'master' }, JWT_SECRET, { expiresIn: '7d' });
