@@ -234,15 +234,15 @@ let navOpen=false
 let S_loaded=false
 
 const DC=[
-  {icon:'👑',title:'لورد المملكة',name:'—',desc:'المؤسس والقائد الأعلى',color:'#F4C95D'},
-  {icon:'⚜️',title:'نائب اللورد',name:'—',desc:'المسؤول عن النقابات',color:'#D9A83E'},
-  {icon:'📜',title:'مستشار المملكة',name:'—',desc:'المستشار الاستراتيجي',color:'#C2541F'},
-  {icon:'⚔️',title:'جنرال الإدارة العليا',name:'—',desc:'يدير العمليات اليومية',color:'#8B5A2B'},
+  {icon:'👑',title:'لورد المملكة',name:'—',description:'المؤسس والقائد الأعلى',color:'#F4C95D'},
+  {icon:'⚜️',title:'نائب اللورد',name:'—',description:'المسؤول عن النقابات',color:'#D9A83E'},
+  {icon:'📜',title:'مستشار المملكة',name:'—',description:'المستشار الاستراتيجي',color:'#C2541F'},
+  {icon:'⚔️',title:'جنرال الإدارة العليا',name:'—',description:'يدير العمليات اليومية',color:'#8B5A2B'},
 ]
 const DE=[
-  {day:'15',month:'يوليو',title:'بطولة الأنمي',desc:'مشاهدة جماعية'},
-  {day:'22',month:'يوليو',title:'ليلة الألعاب',desc:'بطولة أونلاين'},
-  {day:'5',month:'أغسطس',title:'لقاء الرياضة',desc:'مناقشة الأحداث'},
+  {day:'15',month:'يوليو',title:'بطولة الأنمي',description:'مشاهدة جماعية'},
+  {day:'22',month:'يوليو',title:'ليلة الألعاب',description:'بطولة أونلاين'},
+  {day:'5',month:'أغسطس',title:'لقاء الرياضة',description:'مناقشة الأحداث'},
 ]
 const DR=[
   {id:'r_founder',name:'مؤسس',icon:'👑',perms:{admin_access:true,manage_ranks:true,manage_members:true,manage_guilds:true,manage_shop:true,manage_bank:true,manage_logo:true,edit_mode:true,manage_hierarchy:true}},
@@ -309,6 +309,7 @@ async function loadAll(){
     }catch{}
     toast('⚠️ فشل تحميل البيانات: '+e.message)
   }
+  S.events=S.events.map(e=>({...e,description:e.description||e.desc||''}))
   S_loaded=true
 }
 
@@ -496,6 +497,7 @@ async function rAdmin(mc){
   ${hasPerm('manage_guilds')?`<div class="admin-sec"><h3>＋ نقابة جديدة</h3><div class="fr"><input id="aN" placeholder="الاسم"><input id="aI" placeholder="🎮" style="max-width:60px;text-align:center"></div><div class="fg"><input id="aD" placeholder="الوصف"></div><div class="fg"><input id="aW" placeholder="رابط واتساب"></div><button class="btn-gold btn-sm" onclick="aAddG()">＋ إضافة</button></div>
   <div class="admin-sec"><h3>🗂️ النقابات</h3>${g.map(gg=>'<div class="admin-g-item"><div style="display:flex;align-items:center;gap:8px"><span>'+gg.icon+'</span><strong>'+gg.name+'</strong></div><div style="display:flex;gap:4px"><button class="btn-outline btn-sm" style="padding:3px 8px;font-size:.75rem;color:var(--gold)" onclick="aEditG(\''+gg.id+'\')">✏️</button><button class="btn-outline btn-sm" style="padding:3px 8px;font-size:.75rem;color:#e74c3c" onclick="aDelG(\''+gg.id+'\')">🗑</button></div></div>').join('')}${g.map(gg=>'<div id="eg_'+gg.id+'" style="display:none;background:var(--panel-light);border-radius:8px;padding:14px;margin-bottom:8px;border:1px solid var(--gold)"><div class="fr"><input id="egn_'+gg.id+'" value="'+gg.name+'" placeholder="الاسم"><input id="egi_'+gg.id+'" value="'+gg.icon+'" style="max-width:50px;text-align:center"></div><div class="fg" style="margin-top:8px"><input id="egd_'+gg.id+'" value="'+(gg.description||'')+'" placeholder="الوصف"></div><div class="fg"><input id="egw_'+gg.id+'" value="'+gg.wa_link+'" placeholder="رابط واتساب"></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn-gold btn-sm" onclick="aEditGSave(\''+gg.id+'\')">💾 حفظ</button><button class="btn-outline btn-sm" onclick="aEditGCancel(\''+gg.id+'\')">إلغاء</button></div></div>').join('')}</div>`:''}
   ${hasPerm('manage_members')?`<div class="admin-sec"><h3>👥 الأعضاء (${m.length})</h3>${m.length===0?'<p style="color:var(--dim)">لا يوجد أعضاء</p>':m.map(mm=>{const mr=S.ranks.find(r=>r.id===mm.rank_id);return'<div class="arow"><span><strong>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+'</strong> 📱'+mm.phone+(mr?' <span style="color:var(--gold-dim);font-size:.75rem">'+mr.icon+mr.name+'</span>':'')+'</span><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><select onchange="aSetMemberRank(\''+mm.id+'\',this.value)" style="width:110px;font-size:.75rem;padding:4px 6px">'+S.ranks.map(r=>'<option value="'+r.id+'"'+(mm.rank_id===r.id?' selected':'')+'>'+r.icon+r.name+'</option>').join('')+'</select><span style="color:var(--gold);font-weight:700">🪙 '+(mm.coins||0).toLocaleString('ar')+'</span><button class="btn-outline btn-sm" style="padding:2px 8px;font-size:.7rem" onclick="aCoins(\''+mm.id+'\')">🪙</button><button class="btn-outline btn-sm" style="padding:2px 8px;font-size:.7rem;color:#e74c3c" onclick="aDelM(\''+mm.id+'\')">🗑</button></span></div>'}).join('')}</div>`:''}
+  ${hasPerm('manage_guilds')?`<div class="admin-sec"><h3>📅 إدارة الفعاليات</h3><div class="fr"><input id="aEd" placeholder="اليوم (1-31)" style="max-width:70px;font-size:.85rem;padding:8px 6px"><input id="aEm" placeholder="الشهر" style="flex:1;font-size:.85rem;padding:8px 10px"><input id="aEt" placeholder="العنوان" style="flex:2;font-size:.85rem;padding:8px 10px"><button class="btn-gold btn-sm" onclick="aAddEvent()">＋</button></div><div class="fg"><input id="aEdesc" placeholder="الوصف" style="font-size:.85rem;padding:8px 10px"></div>${S.events.map((ev,i)=>'<div class="arow" style="padding:8px 10px;font-size:.82rem;flex-wrap:wrap"><span style="display:flex;align-items:center;gap:4px"><span style="background:var(--panel-light);padding:2px 8px;border-radius:4px;font-weight:700;font-size:.75rem">'+ev.day+' '+ev.month+'</span> <strong>'+ev.title+'</strong></span><span style="display:flex;gap:4px"><button class="btn-outline btn-sm" style="padding:2px 8px;font-size:.7rem;color:var(--gold)" onclick="aEditEvent('+i+')">✏️</button><button class="btn-outline btn-sm" style="padding:2px 8px;font-size:.7rem;color:#e74c3c" onclick="aDelEvent('+i+')">🗑</button></span></div>').join('')}</div>`:''}
   ${hasPerm('manage_shop')?`<div class="admin-sec"><h3>🛍️ إدارة المتجر</h3>`:'<div class="admin-sec" style="display:none"><h3>🛍️ إدارة المتجر</h3>'}<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><input id="aSi" placeholder="🎁" style="max-width:50px;font-size:.85rem;text-align:center;padding:8px 6px"><input id="aSn" placeholder="اسم المنتج" style="flex:2;font-size:.85rem;padding:8px 10px"><input id="aSp" placeholder="السعر 🪙" type="number" style="max-width:80px;font-size:.85rem;padding:8px 6px"><button class="btn-gold btn-sm" onclick="aShopAdd()">＋</button></div><div class="fg"><input id="aSd" placeholder="الوصف" style="font-size:.85rem;padding:8px 10px"></div>${S.shop.length===0?'<p style="color:var(--dim);font-size:.8rem">لا توجد منتجات</p>':S.shop.map((item,i)=>'<div class="arow" style="padding:8px 10px;font-size:.82rem"><span>'+item.icon+' <strong>'+item.name+'</strong> 🪙'+item.price+'</span><span><button class="btn-outline btn-sm" style="padding:2px 8px;font-size:.7rem;color:var(--gold)" onclick="aShopEdit('+i+')">✏️</button><button class="btn-outline btn-sm" style="padding:2px 8px;font-size:.7rem;color:#e74c3c" onclick="aShopDel('+i+')">🗑</button></span></div>').join('')}</div>
   ${hasPerm('manage_bank')?`<div class="admin-sec"><h3>🏦 إدارة البنك</h3>${g.filter(gg=>m.some(mm=>mm.guild_id===gg.id)).length===0?'<p style="color:var(--dim);font-size:.8rem">مافي أعضاء في النقابات</p>':g.filter(gg=>m.some(mm=>mm.guild_id===gg.id)).map(gg=>{const gm=m.filter(mm=>mm.guild_id===gg.id);const tt=gm.reduce((a,mm)=>a+(mm.coins||0),0);return'<div class="arow" style="padding:8px 10px;font-size:.82rem;margin-bottom:6px"><span>'+gg.icon+' <strong>'+gg.name+'</strong> 🪙'+tt.toLocaleString('ar')+'</span><div style="display:flex;gap:4px;flex-wrap:wrap"><input id="agc_'+gg.id+'" type="number" value="10" style="width:55px;font-size:.75rem;padding:4px 6px;text-align:center"><button class="btn-outline btn-sm" style="padding:2px 6px;font-size:.7rem;color:var(--gold)" onclick="aBankGuildAdd(\''+gg.id+'\')">➕</button></div></div>'}).join('')}</div>`:''}</div>`
 }
@@ -620,6 +622,27 @@ async function aDelRank(id){
   if(!confirm('حذف الرتبة؟'))return
   if(S.ranks.length<=1){toast('لا تحذف آخر رتبة');return}
   await api('/ranks/'+id,{method:'DELETE'});await loadAll();toast('✅ تم الحذف');rAdmin($('main'))
+}
+
+async function aAddEvent(){
+  const d=$('aEd')?.value?.trim(),m=$('aEm')?.value?.trim()
+  const t=$('aEt')?.value?.trim(),desc=$('aEdesc')?.value?.trim()
+  if(!d||!m||!t){toast('أدخل اليوم والشهر والعنوان');return}
+  await api('/events',{method:'POST',body:JSON.stringify({day:d,month:m,title:t,description:desc||''})})
+  await loadAll();$('aEd').value='';$('aEm').value='';$('aEt').value='';$('aEdesc').value='';toast('✅ تمت الإضافة');rAdmin($('main'))
+}
+async function aDelEvent(i){
+  const ev=S.events[i];if(!ev||!confirm('حذف الفعالية؟'))return
+  await api('/events/'+ev.id,{method:'DELETE'});await loadAll();toast('✅ تم الحذف');rAdmin($('main'))
+}
+async function aEditEvent(i){
+  const ev=S.events[i];if(!ev)return
+  const d=prompt('اليوم:',ev.day);if(d===null)return
+  const m=prompt('الشهر:',ev.month);if(m===null)return
+  const t=prompt('العنوان:',ev.title);if(t===null)return
+  const desc=prompt('الوصف:',ev.description||'');if(desc===null)return
+  await api('/events/'+ev.id,{method:'PUT',body:JSON.stringify({day:d,month:m,title:t,description:desc||''})})
+  await loadAll();toast('✅ تم التعديل');rAdmin($('main'))
 }
 
 async function aLogo(input){

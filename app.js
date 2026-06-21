@@ -253,6 +253,11 @@ app.post('/api/events', auth, async (req, res) => {
   run('INSERT INTO events (day,month,title,description) VALUES (?,?,?,?)', [day, month, title, description||'']);
   await saveDBAsync(); res.json({ ok: true });
 });
+app.put('/api/events/:id', auth, async (req, res) => {
+  const { day, month, title, description } = req.body;
+  run('UPDATE events SET day=?,month=?,title=?,description=? WHERE id=?', [day, month, title, description||'', req.params.id]);
+  await saveDBAsync(); res.json({ ok: true });
+});
 app.delete('/api/events/:id', auth, async (req, res) => {
   run('DELETE FROM events WHERE id=?', [req.params.id]);
   await saveDBAsync(); res.json({ ok: true });
