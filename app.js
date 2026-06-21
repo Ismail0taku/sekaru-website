@@ -42,15 +42,33 @@ function optionalAuth(req, res, next) {
 
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { nickname, password, phone } = req.body;
+    if (!nickname || !password) return res.status(400).json({ error: 'اللقب وكلمة السر مطلوبان' });
+    if (password.length < 4) return res.status(400).json({ error: 'كلمة السر قصيرة' });
+    const existing = one('SELECT id FROM users WHERE nickname=?', [nickname]);
+    if (existing) return res.status(409).json({ error: 'اللقب مستخدم مسبقاً' });
+    const hash = await bcrypt.hash(password, 10);
+    const id = 'u_' + uuidv4().slice(0, 8);
+    const dummyEmail = nickname.replace(/\s+/g,'_').toLowerCase() + '_' + id.slice(-4) + '@sekaru.local';
+    run('INSERT INTO users (id,email,nickname,password_hash,phone,guild_id,rank_id) VALUES (?,?,?,?,?,?,?)',
+      [id, dummyEmail, nickname, hash, phone || '', '', 'r_member']);
+    saveDB();
+    const token = jwt.sign({ id, nickname }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { id, nickname, phone: phone || '', guildId: '', coins: 100, inventory: [], rankId: 'r_member', avatar: '' } });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-    const user = one('SELECT * FROM users WHERE email=?', [email]);
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    const { nickname, password } = req.body;
+    if (!nickname || !password) return res.status(400).json({ error: 'اللقب وكلمة السر مطلوبان' });
+    const user = one('SELECT * FROM users WHERE nickname=?', [nickname]);
+    if (!user) return res.status(401).json({ error: 'بيانات غير صحيحة' });
     const ok = await bcrypt.compare(password, user.password_hash);
-    if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
-    const token = jwt.sign({ id: user.id, nickname: user.nickname, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    if (!ok) return res.status(401).json({ error: 'بيانات غير صحيحة' });
+    const token = jwt.sign({ id: user.id, nickname: user.nickname }, JWT_SECRET, { expiresIn: '7d' });
     delete user.password_hash;
     try { user.inventory = JSON.parse(user.inventory); } catch { user.inventory = []; }
     res.json({ token, user });

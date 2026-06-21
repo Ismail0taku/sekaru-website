@@ -385,14 +385,23 @@ function rAbout(mc){
 // ===== ACCOUNT =====
 function rAccount(mc){
   if(S.member){rProfile(mc);return}
-  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>تسجيل دخول</h2><p class="sub">مرحباً بعودتك</p><div id="aMsg"></div><div class="fg"><label>البريد الإلكتروني</label><input id="lE" type="email" placeholder="email@example.com"></div><div class="fg"><label>كلمة السر</label><input type="password" id="lP" placeholder="كلمة السر"></div><button class="btn-primary" onclick="login()">دخول</button></div></div>`
+  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>حسابي</h2><p class="sub">انضم أو سجّل دخول</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>رقم الهاتف</label><input id="rPh" placeholder="رقم واتساب (اختياري)"></div><button class="btn-primary" onclick="reg()">تسجيل</button><hr style="border-color:var(--panel);margin:14px 0"><div class="fg"><input id="lN" placeholder="لقبك"><input type="password" id="lP" placeholder="كلمة السر" style="margin-top:8px"></div><button class="btn-outline" onclick="login()" style="width:100%">دخول</button></div></div>`
+}
+
+async function reg(){
+  const n=$('rN')?.value?.trim(),p=$('rP')?.value,ph=$('rPh')?.value?.trim(),msg=$('aMsg')
+  if(!n||!p){msg.innerHTML='<div class="err">يرجى تعبئة اللقب وكلمة السر</div>';return}
+  try{
+    const r=await api('/auth/register',{method:'POST',body:JSON.stringify({nickname:n,password:p,phone:ph})})
+    setToken(r.token);S.member=r.user;toast('مرحباً بك يا '+n+'!');go('home')
+  }catch(err){msg.innerHTML='<div class="err">'+err.message+'</div>'}
 }
 
 async function login(){
-  const e=$('lE')?.value?.trim(),p=$('lP')?.value,msg=$('aMsg')
-  if(!e||!p){msg.innerHTML='<div class="err">يرجى إدخال البريد وكلمة السر</div>';return}
+  const n=$('lN')?.value?.trim(),p=$('lP')?.value,msg=$('aMsg')
+  if(!n||!p){msg.innerHTML='<div class="err">يرجى إدخال اللقب وكلمة السر</div>';return}
   try{
-    const r=await api('/auth/login',{method:'POST',body:JSON.stringify({email:e,password:p})})
+    const r=await api('/auth/login',{method:'POST',body:JSON.stringify({nickname:n,password:p})})
     setToken(r.token);S.member=r.user;toast('أهلاً بعودتك يا '+r.user.nickname+'!');go('home')
   }catch(err){msg.innerHTML='<div class="err">'+err.message+'</div>'}
 }
@@ -410,7 +419,7 @@ function rProfile(mc){
     </div>
     <h2 style="margin-bottom:4px">${m.nickname}</h2>
     <p style="color:var(--gold-dim);font-size:.8rem;margin-bottom:4px;font-weight:600">${rnk?rnk.icon+' '+rnk.name:'عضو'}</p>
-    <p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone||'غير محدد'} · ✉️ ${m.email}</p>
+    <p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone||'غير محدد'}</p>
     <p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
     <button class="btn-outline btn-sm" style="width:100%;justify-content:center" onclick="ghome()">العودة للرئيسية</button>
   </div></div></div>`
@@ -458,7 +467,7 @@ function rBank(mc){
 // ===== ADMIN =====
 async function rAdmin(mc){
   if(!aAuth){
-    mc.innerHTML=`<div class="admin-gate"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px;text-align:center"><div style="font-size:1.5rem;margin-bottom:12px">🔒</div><h2 style="color:var(--gold);margin-bottom:6px">دخول الإدارة</h2><p style="color:var(--dim);font-size:.85rem;margin-bottom:20px">للأدمين فقط</p><input type="password" id="aPw" style="text-align:center;margin-bottom:10px" placeholder="كلمة سر الإدارة" onkeydown="if(event.key==='Enter')aLogin()"><div id="aErr" style="color:#E8714A;font-size:.85rem;margin-bottom:8px"></div><button class="btn-primary" onclick="aLogin()">دخول</button><p style="text-align:center;margin-top:14px;font-size:.78rem;color:var(--dim)">أو</p><div class="fg"><input id="aAdmE" placeholder="بريدك الإلكتروني" style="font-size:.85rem;text-align:center"></div><input type="password" id="aAdmP" style="text-align:center;margin-bottom:8px;font-size:.85rem" placeholder="كلمة سر الحساب" onkeydown="if(event.key==='Enter')aMemberLogin()"><button class="btn-outline btn-sm" onclick="aMemberLogin()" style="justify-content:center;width:100%;font-size:.85rem">دخول بحساب عضو</button></div></div>`
+    mc.innerHTML=`<div class="admin-gate"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px;text-align:center"><div style="font-size:1.5rem;margin-bottom:12px">🔒</div><h2 style="color:var(--gold);margin-bottom:6px">دخول الإدارة</h2><p style="color:var(--dim);font-size:.85rem;margin-bottom:20px">للأدمين فقط</p><input type="password" id="aPw" style="text-align:center;margin-bottom:10px" placeholder="كلمة سر الإدارة" onkeydown="if(event.key==='Enter')aLogin()"><div id="aErr" style="color:#E8714A;font-size:.85rem;margin-bottom:8px"></div><button class="btn-primary" onclick="aLogin()">دخول</button><p style="text-align:center;margin-top:14px;font-size:.78rem;color:var(--dim)">أو</p><div class="fg"><input id="aAdmN" placeholder="لقب العضو" style="font-size:.85rem;text-align:center"></div><input type="password" id="aAdmP" style="text-align:center;margin-bottom:8px;font-size:.85rem" placeholder="كلمة سر الحساب" onkeydown="if(event.key==='Enter')aMemberLogin()"><button class="btn-outline btn-sm" onclick="aMemberLogin()" style="justify-content:center;width:100%;font-size:.85rem">دخول بحساب عضو</button></div></div>`
     return
   }
   const g=S.guilds,m=S.members,h=S.hier
@@ -487,15 +496,15 @@ async function aLogin(){
   }catch(err){if(eh)eh.textContent='كلمة السر غير صحيحة'}
 }
 async function aMemberLogin(){
-  const e=$('aAdmE')?.value?.trim(),p=$('aAdmP')?.value,eh=$('aErr')
-  if(!e||!p){if(eh)eh.textContent='أدخل البريد وكلمة السر';return}
+  const n=$('aAdmN')?.value?.trim(),p=$('aAdmP')?.value,eh=$('aErr')
+  if(!n||!p){if(eh)eh.textContent='أدخل اللقب وكلمة السر';return}
   try{
-    const r=await api('/auth/login',{method:'POST',body:JSON.stringify({email:e,password:p})})
+    const r=await api('/auth/login',{method:'POST',body:JSON.stringify({nickname:n,password:p})})
     S.member=r.user;S.master=false;setMaster(false);setToken(r.token)
     const rnk=S.ranks.find(x=>x.id===r.user.rank_id)
     if(!rnk||!rnk.perms?.admin_access){if(eh)eh.textContent='حسابك ليس لديه صلاحية الدخول';clearToken();S.member=null;return}
     aAuth=true;go('admin');toast('✅ مرحباً '+r.user.nickname)
-  }catch(err){if(eh)eh.textContent='البريد أو كلمة السر غير صحيحة'}
+  }catch(err){if(eh)eh.textContent='اللقب أو كلمة السر غير صحيحة'}
 }
 function aLogout(){clearToken();S.master=false;S.member=null;aAuth=false;go('home')}
 
