@@ -336,7 +336,7 @@ function rNav(){
   const nu=$('navUser');nu.innerHTML=''
   if(editMode)nu.innerHTML='<span class="edit-badge">✏️ تعديل</span> '
   if(S.member)nu.innerHTML+='<span>👤 '+S.member.nickname+'</span><span style="color:var(--gold);font-weight:700">🪙 '+(S.member.coins||0).toLocaleString('ar')+'</span><button onclick="logout()" style="background:var(--panel-light);color:var(--ember);padding:4px 10px;font-size:.8rem;border-radius:6px">خروج</button>'
-  else nu.innerHTML+='<button onclick="go(\'account\')" style="color:var(--gold);font-size:.85rem">🔑 دخول</button>'
+  else nu.innerHTML+='<button onclick="go(\'account\')" style="background:linear-gradient(135deg,#F4C95D,#d9a83e);color:#1A1304;font-size:.85rem;font-weight:800;padding:6px 16px;border-radius:8px">🔑 دخول</button>'
 }
 function logout(){clearToken();S.member=null;aAuth=false;go('home')}
 
