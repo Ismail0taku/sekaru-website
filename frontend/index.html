@@ -385,21 +385,7 @@ function rAbout(mc){
 // ===== ACCOUNT =====
 function rAccount(mc){
   if(S.member){rProfile(mc);return}
-  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>إنشاء حساب</h2><p class="sub">انضم إلى مملكة SEKARU</p><div id="aMsg"></div><div class="fg"><label>البريد الإلكتروني</label><input id="rE" type="email" placeholder="email@example.com"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>رقم الهاتف</label><input id="rPh" placeholder="رقم واتساب"></div><div class="fg"><label>النقابة</label><select id="rG">${S.guilds.map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('')}</select></div><button class="btn-primary" onclick="reg()">تسجيل وانضمام</button><p style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--dim)">عندك حساب؟ <span class="toggle-link" onclick="showLogin()">سجّل دخول</span></p></div></div>`
-}
-
-function showLogin(){
-  $('main').innerHTML=`<div class="sec"><div class="acct-card"><h2>تسجيل دخول</h2><p class="sub">مرحباً بعودتك</p><div id="aMsg"></div><div class="fg"><label>البريد الإلكتروني</label><input id="lE" type="email" placeholder="email@example.com"></div><div class="fg"><label>كلمة السر</label><input type="password" id="lP" placeholder="كلمة السر"></div><button class="btn-primary" onclick="login()">دخول</button><p style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--dim)">ما عندك حساب؟ <span class="toggle-link" onclick="go('account')">سجّل الآن</span></p></div></div>`
-}
-
-async function reg(){
-  const e=$('rE')?.value?.trim(),n=$('rN')?.value?.trim(),p=$('rP')?.value,ph=$('rPh')?.value?.trim(),g=$('rG')?.value,msg=$('aMsg')
-  if(!e||!n||!p){msg.innerHTML='<div class="err">يرجى تعبئة جميع الحقول</div>';return}
-  if(p.length<4){msg.innerHTML='<div class="err">كلمة السر قصيرة (4 أحرف)</div>';return}
-  try{
-    const r=await api('/auth/register',{method:'POST',body:JSON.stringify({email:e,nickname:n,password:p,phone:ph,guildId:g})})
-    setToken(r.token);S.member=r.user;toast('مرحباً بك يا '+n+'!');go('home')
-  }catch(err){msg.innerHTML='<div class="err">'+err.message+'</div>'}
+  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>تسجيل دخول</h2><p class="sub">مرحباً بعودتك</p><div id="aMsg"></div><div class="fg"><label>البريد الإلكتروني</label><input id="lE" type="email" placeholder="email@example.com"></div><div class="fg"><label>كلمة السر</label><input type="password" id="lP" placeholder="كلمة السر"></div><button class="btn-primary" onclick="login()">دخول</button></div></div>`
 }
 
 async function login(){

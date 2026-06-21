@@ -42,23 +42,6 @@ function optionalAuth(req, res, next) {
 
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
-app.post('/api/auth/register', async (req, res) => {
-  try {
-    const { email, nickname, password, phone, guildId } = req.body;
-    if (!email || !nickname || !password) return res.status(400).json({ error: 'Email, nickname, password required' });
-    if (password.length < 4) return res.status(400).json({ error: 'Password too short' });
-    const existing = one('SELECT id FROM users WHERE email=? OR nickname=?', [email, nickname]);
-    if (existing) return res.status(409).json({ error: 'Email or nickname taken' });
-    const hash = await bcrypt.hash(password, 10);
-    const id = 'u_' + uuidv4().slice(0, 8);
-    run('INSERT INTO users (id,email,nickname,password_hash,phone,guild_id,rank_id) VALUES (?,?,?,?,?,?,?)',
-      [id, email, nickname, hash, phone || '', guildId || '', 'r_member']);
-    saveDB();
-    const token = jwt.sign({ id, nickname, email }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id, nickname, email, phone: phone || '', guildId: guildId || '', coins: 100, inventory: [], rankId: 'r_member', avatar: '' } });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
