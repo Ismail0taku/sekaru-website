@@ -8,23 +8,28 @@ const UPLOAD_DIR = path.join(TMP, 'uploads');
 
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-const seedDb = path.join(__dirname, '..', '..', 'sekaru.db');
-if (!fs.existsSync(DB_PATH) && fs.existsSync(seedDb)) {
-  fs.copyFileSync(seedDb, DB_PATH);
-}
-
 process.env.DB_PATH = DB_PATH;
 process.env.UPLOAD_DIR = UPLOAD_DIR;
 
-let handler;
+// Get db + app at module load
+const { initDB } = require('../../database');
+const { app } = require('../../app');
+
+let _handler;
+async function getHandler() {
+  if (!_handler) {
+    await initDB();
+    _handler = serverless(app);
+  }
+  return _handler;
+}
 
 exports.handler = async (event, context) => {
-  if (!handler) {
-    const ROOT = path.join(__dirname, '..', '..');
-    const { initDB } = require(path.join(ROOT, 'database'));
-    await initDB();
-    const { app } = require(path.join(ROOT, 'app'));
-    handler = serverless(app);
+  try {
+    const h = await getHandler();
+    return await h(event, context);
+  } catch (e) {
+    console.error('SEKARU FN ERROR:', e.message, e.stack);
+    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
   }
-  return handler(event, context);
 };
