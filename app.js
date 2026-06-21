@@ -45,7 +45,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISO
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { nickname, password, phone } = req.body;
-    if (!nickname || !password) return res.status(400).json({ error: 'اللقب وكلمة السر مطلوبان' });
+    if (!nickname || !password || !phone) return res.status(400).json({ error: 'اللقب وكلمة السر ورقم الواتساب مطلوبون' });
     if (password.length < 4) return res.status(400).json({ error: 'كلمة السر قصيرة' });
     const existing = one('SELECT id FROM users WHERE nickname=?', [nickname]);
     if (existing) return res.status(409).json({ error: 'اللقب مستخدم مسبقاً' });
@@ -53,7 +53,7 @@ app.post('/api/auth/register', async (req, res) => {
     const id = 'u_' + uuidv4().slice(0, 8);
     const dummyEmail = nickname.replace(/\s+/g,'_').toLowerCase() + '_' + id.slice(-4) + '@sekaru.local';
     run('INSERT INTO users (id,email,nickname,password_hash,phone,guild_id,rank_id) VALUES (?,?,?,?,?,?,?)',
-      [id, dummyEmail, nickname, hash, phone || '', '', 'r_member']);
+      [id, dummyEmail, nickname, hash, phone, '', 'r_member']);
     saveDB();
     const token = jwt.sign({ id, nickname }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id, nickname, phone: phone || '', guildId: '', coins: 100, inventory: [], rankId: 'r_member', avatar: '' } });

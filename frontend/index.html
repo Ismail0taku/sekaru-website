@@ -385,12 +385,12 @@ function rAbout(mc){
 // ===== ACCOUNT =====
 function rAccount(mc){
   if(S.member){rProfile(mc);return}
-  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>حسابي</h2><p class="sub">انضم أو سجّل دخول</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>رقم الهاتف</label><input id="rPh" placeholder="رقم واتساب (اختياري)"></div><button class="btn-primary" onclick="reg()">تسجيل</button><hr style="border-color:var(--panel);margin:14px 0"><div class="fg"><input id="lN" placeholder="لقبك"><input type="password" id="lP" placeholder="كلمة السر" style="margin-top:8px"></div><button class="btn-outline" onclick="login()" style="width:100%">دخول</button></div></div>`
+  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>حسابي</h2><p class="sub">انضم أو سجّل دخول</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>رقم واتساب</label><input id="rPh" placeholder="رقم واتساب"></div><button class="btn-primary" onclick="reg()">تسجيل</button><hr style="border-color:var(--panel);margin:14px 0"><div class="fg"><input id="lN" placeholder="لقبك"><input type="password" id="lP" placeholder="كلمة السر" style="margin-top:8px"></div><button class="btn-outline" onclick="login()" style="width:100%">دخول</button></div></div>`
 }
 
 async function reg(){
   const n=$('rN')?.value?.trim(),p=$('rP')?.value,ph=$('rPh')?.value?.trim(),msg=$('aMsg')
-  if(!n||!p){msg.innerHTML='<div class="err">يرجى تعبئة اللقب وكلمة السر</div>';return}
+  if(!n||!p||!ph){msg.innerHTML='<div class="err">يرجى تعبئة جميع الحقول</div>';return}
   try{
     const r=await api('/auth/register',{method:'POST',body:JSON.stringify({nickname:n,password:p,phone:ph})})
     setToken(r.token);S.member=r.user;toast('مرحباً بك يا '+n+'!');go('home')
