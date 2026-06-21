@@ -24,7 +24,7 @@ async function initDB() {
     db.run('PRAGMA foreign_keys=ON');
     createTables();
     seedData();
-    await saveDB();
+    saveDB();
     return db;
   }
   if (fs.existsSync(DB_PATH)) {
@@ -37,11 +37,11 @@ async function initDB() {
   db.run('PRAGMA foreign_keys=ON');
   createTables();
   seedData();
-  await saveDB();
+  saveDB();
   return db;
 }
 
-async function saveDB() {
+function saveDB() {
   if (!db) return;
   const data = db.export();
   const buf = Buffer.from(data);
@@ -50,6 +50,21 @@ async function saveDB() {
       const { getStore } = require('@netlify/blobs');
       return getStore('sekaru-data').set('database', buf);
     }).catch(err => console.error('Blob save failed:', err.message));
+  } else {
+    fs.writeFileSync(DB_PATH, buf);
+  }
+}
+async function saveDBAsync() {
+  if (!db) return;
+  const data = db.export();
+  const buf = Buffer.from(data);
+  if (process.env.NETLIFY) {
+    const saveOp = _savePromise.then(() => {
+      const { getStore } = require('@netlify/blobs');
+      return getStore('sekaru-data').set('database', buf);
+    }).catch(err => console.error('Blob save failed:', err.message));
+    _savePromise = saveOp;
+    await saveOp;
   } else {
     fs.writeFileSync(DB_PATH, buf);
   }
@@ -171,4 +186,4 @@ function one(sql, params) {
 
 function getDB() { return db; }
 
-module.exports = { initDB, saveDB, getDB, run, all, one, waitForPendingSaves };
+module.exports = { initDB, saveDB, saveDBAsync, getDB, run, all, one, waitForPendingSaves };

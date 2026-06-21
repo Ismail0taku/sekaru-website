@@ -7,7 +7,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
-const { saveDB, run, all, one } = require('./database');
+const { saveDB, saveDBAsync, run, all, one } = require('./database');
 
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'sekaru-dev-secret';
@@ -50,7 +50,7 @@ app.post('/api/auth/register', async (req, res) => {
     const dummyEmail = nickname.replace(/\s+/g,'_').toLowerCase() + '_' + id.slice(-4) + '@sekaru.local';
     run('INSERT INTO users (id,email,nickname,password_hash,phone,guild_id,rank_id) VALUES (?,?,?,?,?,?,?)',
       [id, dummyEmail, nickname, hash, phone, '', 'r_member']);
-    saveDB();
+    await saveDBAsync();
     const token = jwt.sign({ id, nickname }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id, nickname, phone: phone || '', guildId: '', coins: 100, inventory: [], rankId: 'r_member', avatar: '' } });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -91,7 +91,7 @@ app.get('/api/members', optionalAuth, (req, res) => {
   res.json(rows);
 });
 
-app.put('/api/members/:id', auth, (req, res) => {
+app.put('/api/members/:id', auth, async (req, res) => {
   const { coins, rankId, nickname, phone, guildId } = req.body;
   const sets = []; const binds = [];
   if (coins !== undefined) { sets.push('coins=?'); binds.push(coins); }
@@ -102,35 +102,35 @@ app.put('/api/members/:id', auth, (req, res) => {
   if (!sets.length) return res.status(400).json({ error: 'No fields' });
   binds.push(req.params.id);
   run(`UPDATE users SET ${sets.join(',')} WHERE id=?`, binds);
-  saveDB();
+  await saveDBAsync();
   res.json({ ok: true });
 });
 
-app.delete('/api/members/:id', auth, (req, res) => {
+app.delete('/api/members/:id', auth, async (req, res) => {
   run('DELETE FROM users WHERE id=?', [req.params.id]);
-  saveDB();
+  await saveDBAsync();
   res.json({ ok: true });
 });
 
-app.post('/api/upload/avatar', auth, upload.single('avatar'), (req, res) => {
+app.post('/api/upload/avatar', auth, upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file' });
   const b64 = 'data:' + req.file.mimetype + ';base64,' + req.file.buffer.toString('base64');
   run('UPDATE users SET avatar=? WHERE id=?', [b64, req.user.id]);
-  saveDB();
+  await saveDBAsync();
   res.json({ url: b64 });
 });
 
 app.get('/api/guilds', (req, res) => res.json(all('SELECT * FROM guilds')));
-app.post('/api/guilds', auth, (req, res) => {
+app.post('/api/guilds', auth, async (req, res) => {
   const { name, icon, accent, description, wa_link } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
   const id = 'g_' + uuidv4().slice(0, 8);
   run('INSERT INTO guilds (id,name,icon,accent,description,wa_link) VALUES (?,?,?,?,?,?)',
     [id, name, icon||'🛡️', accent||'#C2541F', description||'', wa_link||'']);
-  saveDB();
+  await saveDBAsync();
   res.json({ id });
 });
-app.put('/api/guilds/:id', auth, (req, res) => {
+app.put('/api/guilds/:id', auth, async (req, res) => {
   const { name, icon, accent, description, wa_link } = req.body;
   const sets = []; const binds = [];
   if (name !== undefined) { sets.push('name=?'); binds.push(name); }
@@ -141,11 +141,11 @@ app.put('/api/guilds/:id', auth, (req, res) => {
   if (!sets.length) return res.status(400).json({ error: 'No fields' });
   binds.push(req.params.id);
   run(`UPDATE guilds SET ${sets.join(',')} WHERE id=?`, binds);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
-app.delete('/api/guilds/:id', auth, (req, res) => {
+app.delete('/api/guilds/:id', auth, async (req, res) => {
   run('DELETE FROM guilds WHERE id=?', [req.params.id]);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
 
 app.get('/api/ranks', (req, res) => {
@@ -153,14 +153,14 @@ app.get('/api/ranks', (req, res) => {
   rows.forEach(r => { try { r.perms = JSON.parse(r.perms); } catch { r.perms = {}; } });
   res.json(rows);
 });
-app.post('/api/ranks', auth, (req, res) => {
+app.post('/api/ranks', auth, async (req, res) => {
   const { name, icon, perms } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
   const id = 'r_' + uuidv4().slice(0, 8);
   run('INSERT INTO ranks (id,name,icon,perms) VALUES (?,?,?,?)', [id, name, icon||'🎖️', JSON.stringify(perms||{})]);
-  saveDB(); res.json({ id });
+  await saveDBAsync(); res.json({ id });
 });
-app.put('/api/ranks/:id', auth, (req, res) => {
+app.put('/api/ranks/:id', auth, async (req, res) => {
   const { name, icon, perms } = req.body;
   const sets = []; const binds = [];
   if (name !== undefined) { sets.push('name=?'); binds.push(name); }
@@ -169,26 +169,26 @@ app.put('/api/ranks/:id', auth, (req, res) => {
   if (!sets.length) return res.status(400).json({ error: 'No fields' });
   binds.push(req.params.id);
   run(`UPDATE ranks SET ${sets.join(',')} WHERE id=?`, binds);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
-app.delete('/api/ranks/:id', auth, (req, res) => {
+app.delete('/api/ranks/:id', auth, async (req, res) => {
   const cnt = one('SELECT COUNT(*) as c FROM ranks');
   if (cnt && cnt.c <= 1) return res.status(400).json({ error: 'Cannot delete last rank' });
   run('DELETE FROM ranks WHERE id=?', [req.params.id]);
   run("UPDATE users SET rank_id='r_member' WHERE rank_id=?", [req.params.id]);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
 
 app.get('/api/shop', (req, res) => res.json(all('SELECT * FROM shop_items')));
-app.post('/api/shop', auth, (req, res) => {
+app.post('/api/shop', auth, async (req, res) => {
   const { name, icon, description, price } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
   const id = 'sh_' + uuidv4().slice(0, 8);
   run('INSERT INTO shop_items (id,name,icon,description,price) VALUES (?,?,?,?,?)',
     [id, name, icon||'🎁', description||'', Math.max(1, parseInt(price)||10)]);
-  saveDB(); res.json({ id });
+  await saveDBAsync(); res.json({ id });
 });
-app.put('/api/shop/:id', auth, (req, res) => {
+app.put('/api/shop/:id', auth, async (req, res) => {
   const { name, icon, description, price } = req.body;
   const sets = []; const binds = [];
   if (name !== undefined) { sets.push('name=?'); binds.push(name); }
@@ -198,31 +198,31 @@ app.put('/api/shop/:id', auth, (req, res) => {
   if (!sets.length) return res.status(400).json({ error: 'No fields' });
   binds.push(req.params.id);
   run(`UPDATE shop_items SET ${sets.join(',')} WHERE id=?`, binds);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
-app.delete('/api/shop/:id', auth, (req, res) => {
+app.delete('/api/shop/:id', auth, async (req, res) => {
   run('DELETE FROM shop_items WHERE id=?', [req.params.id]);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
 
-app.post('/api/bank/add-guild', auth, (req, res) => {
+app.post('/api/bank/add-guild', auth, async (req, res) => {
   const { guildId, amount } = req.body;
   if (!guildId || !amount || amount <= 0) return res.status(400).json({ error: 'Invalid' });
   run('UPDATE users SET coins=coins+? WHERE guild_id=?', [amount, guildId]);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
 
 app.get('/api/hierarchy', (req, res) => res.json(all('SELECT * FROM hierarchy ORDER BY sort_order ASC')));
-app.post('/api/hierarchy', auth, (req, res) => {
+app.post('/api/hierarchy', auth, async (req, res) => {
   const { title, name, description, icon, color } = req.body;
   if (!title) return res.status(400).json({ error: 'Title required' });
   const max = one('SELECT COALESCE(MAX(sort_order),-1) as m FROM hierarchy');
   const icons = ['⚜️','📜','🛡️','🔮','🏹']; const colors = ['#F4C95D','#C2541F','#8B5A2B','#D9A83E','#E8714A'];
   run('INSERT INTO hierarchy (title,name,description,icon,color,sort_order) VALUES (?,?,?,?,?,?)',
     [title, name||'—', description||'', icon||icons[0], color||colors[0], (max?.m||0)+1]);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
-app.put('/api/hierarchy/:id', auth, (req, res) => {
+app.put('/api/hierarchy/:id', auth, async (req, res) => {
   const { title, name, description, icon, color, sort_order } = req.body;
   const sets = []; const binds = [];
   if (title !== undefined) { sets.push('title=?'); binds.push(title); }
@@ -234,28 +234,28 @@ app.put('/api/hierarchy/:id', auth, (req, res) => {
   if (!sets.length) return res.status(400).json({ error: 'No fields' });
   binds.push(req.params.id);
   run(`UPDATE hierarchy SET ${sets.join(',')} WHERE id=?`, binds);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
-app.delete('/api/hierarchy/:id', auth, (req, res) => {
+app.delete('/api/hierarchy/:id', auth, async (req, res) => {
   run('DELETE FROM hierarchy WHERE id=?', [req.params.id]);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
-app.post('/api/hierarchy/reorder', auth, (req, res) => {
+app.post('/api/hierarchy/reorder', auth, async (req, res) => {
   const { ids } = req.body;
   if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids array required' });
   ids.forEach((id, idx) => run('UPDATE hierarchy SET sort_order=? WHERE id=?', [idx, id]));
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
 
 app.get('/api/events', (req, res) => res.json(all('SELECT * FROM events')));
-app.post('/api/events', auth, (req, res) => {
+app.post('/api/events', auth, async (req, res) => {
   const { day, month, title, description } = req.body;
   run('INSERT INTO events (day,month,title,description) VALUES (?,?,?,?)', [day, month, title, description||'']);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
-app.delete('/api/events/:id', auth, (req, res) => {
+app.delete('/api/events/:id', auth, async (req, res) => {
   run('DELETE FROM events WHERE id=?', [req.params.id]);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
 
 app.get('/api/text-edits', (req, res) => {
@@ -263,36 +263,36 @@ app.get('/api/text-edits', (req, res) => {
   const edits = {}; rows.forEach(r => edits[r.key] = r.value);
   res.json(edits);
 });
-app.put('/api/text-edits', auth, (req, res) => {
+app.put('/api/text-edits', auth, async (req, res) => {
   const { key, value } = req.body;
   if (!key) return res.status(400).json({ error: 'Key required' });
   const existing = one('SELECT key FROM text_edits WHERE key=?', [key]);
   if (existing) run('UPDATE text_edits SET value=? WHERE key=?', [value||'', key]);
   else run('INSERT INTO text_edits (key,value) VALUES (?,?)', [key, value||'']);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
 
 app.get('/api/settings/:key', (req, res) => {
   const row = one('SELECT value FROM settings WHERE key=?', [req.params.key]);
   res.json({ value: row ? row.value : '' });
 });
-app.put('/api/settings/:key', auth, (req, res) => {
+app.put('/api/settings/:key', auth, async (req, res) => {
   const { value } = req.body;
   const existing = one('SELECT key FROM settings WHERE key=?', [req.params.key]);
   if (existing) run('UPDATE settings SET value=? WHERE key=?', [value||'', req.params.key]);
   else run('INSERT INTO settings (key,value) VALUES (?,?)', [req.params.key, value||'']);
-  saveDB(); res.json({ ok: true });
+  await saveDBAsync(); res.json({ ok: true });
 });
-app.post('/api/upload/logo', auth, upload.single('logo'), (req, res) => {
+app.post('/api/upload/logo', auth, upload.single('logo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file' });
   const b64 = 'data:' + req.file.mimetype + ';base64,' + req.file.buffer.toString('base64');
   const existing = one("SELECT key FROM settings WHERE key='logo'");
   if (existing) run("UPDATE settings SET value=? WHERE key='logo'", [b64]);
   else run("INSERT INTO settings (key,value) VALUES ('logo',?)", [b64]);
-  saveDB(); res.json({ url: b64 });
+  await saveDBAsync(); res.json({ url: b64 });
 });
 
-app.post('/api/shop/buy', auth, (req, res) => {
+app.post('/api/shop/buy', auth, async (req, res) => {
   const { itemId } = req.body;
   if (!itemId) return res.status(400).json({ error: 'Item ID required' });
   const item = one('SELECT * FROM shop_items WHERE id=?', [itemId]);
@@ -304,7 +304,7 @@ app.post('/api/shop/buy', auth, (req, res) => {
   if (inv.some(i => i.id === itemId)) return res.status(400).json({ error: 'Already owned' });
   inv.push({ id: itemId });
   run('UPDATE users SET coins=?, inventory=? WHERE id=?', [user.coins - item.price, JSON.stringify(inv), req.user.id]);
-  saveDB(); res.json({ ok: true, coins: user.coins - item.price });
+  await saveDBAsync(); res.json({ ok: true, coins: user.coins - item.price });
 });
 
 app.use(express.static(path.join(__dirname, 'frontend')));
