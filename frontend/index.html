@@ -274,15 +274,20 @@ async function loadAll(){
       api('/shop'),api('/events'),api('/text-edits'),
       api('/settings/logo'),api('/settings/founder_id')
     ])
-    S.guilds=guilds.length?guilds:DG
-    S.members=members
-    S.ranks=ranks.length?ranks:DR
-    S.hier=hier.length?hier:DC
-    S.shop=shop
-    S.events=events
-    S.textEdits=edits||{}
-    S.logo=logoRes.value||''
-    S.founderId=founderRes.value||null
+    // Detect if the server returned seed data (cold start)
+    const isSeed=guilds.length===4&&guilds.every(g=>'agms'.includes(g.id))
+    const hasCache=!!(S.guilds&&S.guilds.length)
+    S.guilds=(!isSeed&&guilds.length)?guilds:(hasCache?S.guilds:DG)
+    S.members=members.length?members:(S.members||[])
+    S.ranks=ranks.length?ranks:(S.ranks||DR)
+    S.hier=hier.length?hier:(S.hier||DC)
+    S.shop=shop.length?shop:(S.shop||[])
+    S.events=events.length?events:(S.events||DE)
+    S.textEdits=Object.keys(edits||{}).length?edits:(S.textEdits||{})
+    S.logo=logoRes.value||(S.logo||'')
+    S.founderId=founderRes.value||(S.founderId||null)
+    // Cache to localStorage (only if not seed data)
+    if(!isSeed)try{localStorage.setItem('sk_cache',JSON.stringify({guilds:S.guilds,members:S.members,ranks:S.ranks,hier:S.hier,shop:S.shop,events:S.events,edits:S.textEdits,logo:S.logo,founder:S.founderId,_ts:Date.now()}))}catch{}
     // Refresh session
     const tok=getToken()
     S.master=getMaster()
@@ -292,7 +297,18 @@ async function loadAll(){
         S.member=me
       }catch{S.member=null;clearToken()}
     }else if(S.master){S.member=null}
-  }catch(e){toast('⚠️ فشل تحميل البيانات: '+e.message)}
+  }catch(e){
+    // Fallback to localStorage cache
+    try{
+      const c=JSON.parse(localStorage.getItem('sk_cache'))
+      if(c){
+        S.guilds=c.guilds||DG;S.members=c.members||[];S.ranks=c.ranks||DR
+        S.hier=c.hier||DC;S.shop=c.shop||[];S.events=c.events||DE
+        S.textEdits=c.edits||{};S.logo=c.logo||'';S.founderId=c.founder||null
+      }
+    }catch{}
+    toast('⚠️ فشل تحميل البيانات: '+e.message)
+  }
   S_loaded=true
 }
 

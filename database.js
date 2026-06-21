@@ -9,6 +9,15 @@ let _savePromise = Promise.resolve();
 async function initDB() {
   const SQL = await initSqlJs();
   if (process.env.NETLIFY) {
+    // Try local file first (warm instance)
+    if (fs.existsSync(DB_PATH)) {
+      try {
+        db = new SQL.Database(fs.readFileSync(DB_PATH));
+        createTables();
+        return db;
+      } catch {}
+    }
+    // Try blob (persistent across cold starts)
     try {
       const { getStore } = require('@netlify/blobs');
       const store = getStore('sekaru-data');
@@ -16,6 +25,7 @@ async function initDB() {
       if (blobData) {
         db = new SQL.Database(Buffer.from(blobData));
         createTables();
+        saveDB(); // sync to local file
         return db;
       }
     } catch (e) { console.error('Blob load failed:', e.message); }
@@ -45,19 +55,19 @@ function saveDB() {
   if (!db) return;
   const data = db.export();
   const buf = Buffer.from(data);
+  try { fs.writeFileSync(DB_PATH, buf); } catch {}
   if (process.env.NETLIFY) {
     _savePromise = _savePromise.then(() => {
       const { getStore } = require('@netlify/blobs');
       return getStore('sekaru-data').set('database', buf);
     }).catch(err => console.error('Blob save failed:', err.message));
-  } else {
-    fs.writeFileSync(DB_PATH, buf);
   }
 }
 async function saveDBAsync() {
   if (!db) return;
   const data = db.export();
   const buf = Buffer.from(data);
+  try { fs.writeFileSync(DB_PATH, buf); } catch {}
   if (process.env.NETLIFY) {
     const saveOp = _savePromise.then(() => {
       const { getStore } = require('@netlify/blobs');
@@ -65,8 +75,6 @@ async function saveDBAsync() {
     }).catch(err => console.error('Blob save failed:', err.message));
     _savePromise = saveOp;
     await saveOp;
-  } else {
-    fs.writeFileSync(DB_PATH, buf);
   }
 }
 
