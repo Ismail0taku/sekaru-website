@@ -2,34 +2,18 @@ const serverless = require('serverless-http');
 const path = require('path');
 const fs = require('fs');
 
-const TMP = '/tmp';
-const DB_PATH = path.join(TMP, 'sekaru.db');
-const UPLOAD_DIR = path.join(TMP, 'uploads');
+// Netlify: use /tmp for writable storage
+process.env.DB_PATH = '/tmp/sekaru.db';
+process.env.UPLOAD_DIR = '/tmp/uploads';
 
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+if (!fs.existsSync('/tmp/uploads')) fs.mkdirSync('/tmp/uploads', { recursive: true });
 
-process.env.DB_PATH = DB_PATH;
-process.env.UPLOAD_DIR = UPLOAD_DIR;
-
-// Get db + app at module load
 const { initDB } = require('../../database');
 const { app } = require('../../app');
 
-let _handler;
-async function getHandler() {
-  if (!_handler) {
-    await initDB();
-    _handler = serverless(app);
-  }
-  return _handler;
-}
+let _ready = false;
 
 exports.handler = async (event, context) => {
-  try {
-    const h = await getHandler();
-    return await h(event, context);
-  } catch (e) {
-    console.error('SEKARU FN ERROR:', e.message, e.stack);
-    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
-  }
+  if (!_ready) { await initDB(); _ready = true; }
+  return serverless(app)(event, context);
 };
