@@ -411,7 +411,7 @@ function rProfile(mc){
   const m=S.member;if(!m){go('account');return}
   const g=S.guilds.find(x=>x.id===m.guild_id)
   const rnk=S.ranks.find(x=>x.id===m.rank_id)
-  const avatarUrl=m.avatar?(m.avatar.startsWith('http')?m.avatar:window.location.origin+m.avatar):''
+  const avatarUrl=m.avatar?(m.avatar.startsWith('http')||m.avatar.startsWith('data:')?m.avatar:window.location.origin+m.avatar):''
   mc.innerHTML=`<div class="sec"><div class="acct-card"><div style="text-align:center">
     <div class="avatar-upload">
       ${avatarUrl?'<img src="'+avatarUrl+'" class="avatar-img">':'<div class="avatar-placeholder">'+m.nickname.charAt(0)+'</div>'}

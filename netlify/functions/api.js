@@ -8,12 +8,14 @@ process.env.UPLOAD_DIR = '/tmp/uploads';
 
 if (!fs.existsSync('/tmp/uploads')) fs.mkdirSync('/tmp/uploads', { recursive: true });
 
-const { initDB } = require('../../database');
+const { initDB, waitForPendingSaves } = require('../../database');
 const { app } = require('../../app');
 
 let _ready = false;
 
 exports.handler = async (event, context) => {
   if (!_ready) { await initDB(); _ready = true; }
-  return serverless(app)(event, context);
+  const result = await serverless(app)(event, context);
+  await waitForPendingSaves();
+  return result;
 };

@@ -19,12 +19,8 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use('/uploads', express.static(UPLOAD_DIR));
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => cb(null, 'av_' + uuidv4().slice(0,8) + (path.extname(file.originalname) || '.jpg'))
-});
 const upload = multer({
-  storage, limits: { fileSize: 5 * 1024 * 1024 },
+  storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => cb(null, /jpeg|jpg|png|gif|webp/i.test(path.extname(file.originalname)))
 });
 
@@ -118,10 +114,10 @@ app.delete('/api/members/:id', auth, (req, res) => {
 
 app.post('/api/upload/avatar', auth, upload.single('avatar'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file' });
-  const url = '/uploads/' + req.file.filename;
-  run('UPDATE users SET avatar=? WHERE id=?', [url, req.user.id]);
+  const b64 = 'data:' + req.file.mimetype + ';base64,' + req.file.buffer.toString('base64');
+  run('UPDATE users SET avatar=? WHERE id=?', [b64, req.user.id]);
   saveDB();
-  res.json({ url });
+  res.json({ url: b64 });
 });
 
 app.get('/api/guilds', (req, res) => res.json(all('SELECT * FROM guilds')));
@@ -289,11 +285,11 @@ app.put('/api/settings/:key', auth, (req, res) => {
 });
 app.post('/api/upload/logo', auth, upload.single('logo'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file' });
-  const url = '/uploads/' + req.file.filename;
+  const b64 = 'data:' + req.file.mimetype + ';base64,' + req.file.buffer.toString('base64');
   const existing = one("SELECT key FROM settings WHERE key='logo'");
-  if (existing) run("UPDATE settings SET value=? WHERE key='logo'", [url]);
-  else run("INSERT INTO settings (key,value) VALUES ('logo',?)", [url]);
-  saveDB(); res.json({ url });
+  if (existing) run("UPDATE settings SET value=? WHERE key='logo'", [b64]);
+  else run("INSERT INTO settings (key,value) VALUES ('logo',?)", [b64]);
+  saveDB(); res.json({ url: b64 });
 });
 
 app.post('/api/shop/buy', auth, (req, res) => {

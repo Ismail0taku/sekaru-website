@@ -4,9 +4,29 @@ const path = require('path');
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'sekaru.db');
 let db = null;
+let _savePromise = Promise.resolve();
 
 async function initDB() {
   const SQL = await initSqlJs();
+  if (process.env.NETLIFY) {
+    try {
+      const { getStore } = require('@netlify/blobs');
+      const store = getStore('sekaru-data');
+      const blobData = await store.get('database', { type: 'arrayBuffer' });
+      if (blobData) {
+        db = new SQL.Database(Buffer.from(blobData));
+        createTables();
+        return db;
+      }
+    } catch (e) { console.error('Blob load failed:', e.message); }
+    db = new SQL.Database();
+    db.run('PRAGMA journal_mode=WAL');
+    db.run('PRAGMA foreign_keys=ON');
+    createTables();
+    seedData();
+    await saveDB();
+    return db;
+  }
   if (fs.existsSync(DB_PATH)) {
     const buf = fs.readFileSync(DB_PATH);
     db = new SQL.Database(buf);
@@ -17,14 +37,26 @@ async function initDB() {
   db.run('PRAGMA foreign_keys=ON');
   createTables();
   seedData();
-  saveDB();
+  await saveDB();
   return db;
 }
 
-function saveDB() {
+async function saveDB() {
   if (!db) return;
   const data = db.export();
-  fs.writeFileSync(DB_PATH, Buffer.from(data));
+  const buf = Buffer.from(data);
+  if (process.env.NETLIFY) {
+    _savePromise = _savePromise.then(() => {
+      const { getStore } = require('@netlify/blobs');
+      return getStore('sekaru-data').set('database', buf);
+    }).catch(err => console.error('Blob save failed:', err.message));
+  } else {
+    fs.writeFileSync(DB_PATH, buf);
+  }
+}
+
+async function waitForPendingSaves() {
+  await _savePromise;
 }
 
 function createTables() {
@@ -139,4 +171,4 @@ function one(sql, params) {
 
 function getDB() { return db; }
 
-module.exports = { initDB, saveDB, getDB, run, all, one };
+module.exports = { initDB, saveDB, getDB, run, all, one, waitForPendingSaves };
