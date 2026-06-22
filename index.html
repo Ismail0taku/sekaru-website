@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEKARU — المملكة الرقمية</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080604;--panel:#140F0A;--panel-light:#1F1811;--gold:#E8C56A;--gold-dim:#A68B4E;--ember:#B84820;--brown:#7A4E28;--text:#E8DDD0;--dim:#A09080;--line:rgba(232,197,106,0.10)}
+::selection{background:rgba(232,197,106,0.18);color:#E8DDD0}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--panel-light);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--gold-dim)}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:radial-gradient(ellipse at 50% 0,var(--panel) 0%,var(--bg) 70%);color:var(--text);min-height:100vh;line-height:1.7;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+button{cursor:pointer;font-family:inherit;border:none;border-radius:8px;padding:10px 24px;font-size:1rem;transition:all .4s ease;touch-action:manipulation}
+input,select,textarea{font-family:inherit;background:var(--panel-light);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:10px 14px;font-size:1rem;width:100%;outline:none;-webkit-appearance:none;appearance:none}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,197,106,0.06)}
+::placeholder{color:var(--dim)}a{color:var(--gold);text-decoration:none;cursor:pointer}
+
+/* Entrance */
+#entrance{position:fixed;inset:0;z-index:9999;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center}
+#entrance.hide{animation:fadeEntrance .8s ease forwards;pointer-events:none}
+@keyframes fadeEntrance{to{opacity:0;transform:scale(1.05)}}
+.e-star{position:absolute;border-radius:50%;animation:twinkle 2s ease-in-out infinite alternate}
+@keyframes twinkle{0%{opacity:.08}100%{opacity:.5}}
+.e-glow{position:absolute;top:20%;left:10%;width:80%;height:60%;border-radius:50%;background:radial-gradient(ellipse,rgba(232,197,106,0.04),rgba(184,72,32,0.02)50%,transparent 70%);filter:blur(60px)}
+.e-island{position:absolute;bottom:0;width:0;height:0;border-left:clamp(60px,18vw,160px) solid transparent;border-right:clamp(60px,18vw,160px) solid transparent;border-bottom:clamp(80px,26vw,230px) solid rgba(20,15,10,0.85);filter:drop-shadow(0 0 30px rgba(232,197,106,0.03))}
+.e-island2{bottom:0;left:25%;border-left-width:clamp(80px,22vw,200px);border-right-width:clamp(80px,22vw,200px);border-bottom-width:clamp(110px,34vw,300px);border-bottom-color:rgba(20,15,10,0.8)}
+.e-island3{right:0;border-left-width:clamp(50px,14vw,130px);border-right-width:clamp(50px,14vw,130px);border-bottom-width:clamp(70px,22vw,190px);opacity:.7}
+.e-ray{position:absolute;top:50%;left:50%;width:1px;height:200%;background:linear-gradient(to top,transparent,rgba(232,197,106,0.04),transparent);transform-origin:0 0;animation:raySweep 4s ease-in-out infinite alternate}
+@keyframes raySweep{0%{opacity:.1}100%{opacity:.35}}
+.e-rune{position:absolute;font-size:clamp(.5rem,1vw,.85rem);color:var(--gold-dim);animation:runeGlow 3s ease-in-out infinite alternate}
+@keyframes runeGlow{0%{opacity:.1}100%{opacity:.35}}
+.e-pdot{position:absolute;width:2px;height:2px;border-radius:50%;animation:floatDot 5s ease-in-out infinite alternate}
+@keyframes floatDot{0%{transform:translateY(0)}100%{transform:translateY(-40px)}}
+.e-cc{position:relative;z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px;animation:ccIn 1.2s cubic-bezier(.22,1,.36,1) both;animation-delay:.5s}
+@keyframes ccIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.e-seal{width:100px;height:100px;border-radius:50%;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:var(--gold);margin-bottom:12px;overflow:hidden;animation:pulseGlow 3s ease-in-out infinite;filter:drop-shadow(0 0 12px rgba(232,197,106,.18))}
+.e-seal img{width:100%;height:100%;object-fit:cover}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 12px var(--gold)}50%{box-shadow:0 0 28px var(--ember)}}
+.e-tt{font-size:clamp(2.5rem,7vw,4rem);font-weight:900;background:linear-gradient(135deg,var(--gold),#ece0b8 30%,var(--gold)55%,var(--ember)80%,var(--gold)100%);background-size:300% 300%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:clamp(4px,1vw,8px);animation:titleShine 5s ease-in-out infinite;filter:drop-shadow(0 0 24px rgba(232,197,106,.1));line-height:1.1}
+@keyframes titleShine{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.e-sub{color:var(--gold-dim);font-size:clamp(.8rem,1.5vw,1rem);letter-spacing:clamp(3px,.6vw,6px);margin-top:4px}
+.e-div{width:0;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--ember),var(--gold),transparent);transition:width .8s ease .3s}
+.e-div.show{width:140px}
+.e-ent{opacity:0;transform:translateY(10px);transition:all .7s cubic-bezier(.22,1,.36,1);transition-delay:.2s}
+.e-ent.show{opacity:1;transform:translateY(0)}
+.e-ent-btn{background:linear-gradient(135deg,var(--gold),#c9a84a);color:#0E0B08;font-weight:800;padding:12px 32px;border-radius:8px;font-size:clamp(.85rem,1.2vw,1rem);animation:entPulse 3s ease-in-out infinite;border:1px solid rgba(232,197,106,.15);cursor:pointer}
+@keyframes entPulse{0%,100%{box-shadow:0 6px 20px rgba(232,197,106,.15);transform:scale(1)}50%{box-shadow:0 6px 36px rgba(232,197,106,.25);transform:scale(1.02)}}
+.e-hint{color:var(--dim);font-size:.65rem;opacity:0;transition:opacity .5s ease .7s}
+.e-hint.show{opacity:.4}
+
+/* Layout */
+.navbar{background:rgba(8,6,4,0.88);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:10px 24px;backdrop-filter:blur(16px)}
+.nav-logo{display:flex;align-items:center;gap:10px;cursor:pointer}
+.nav-logo-img{width:36px;height:36px;border-radius:50%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;color:var(--gold)}
+.nav-logo-text{font-weight:800;font-size:1.2rem;color:var(--gold)}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap}
+.nav-links button{background:transparent;color:var(--dim);padding:8px 18px;font-size:.85rem;border-radius:8px;white-space:nowrap;font-weight:600;transition:all .4s ease;position:relative}
+.nav-links button:hover{color:var(--gold);background:rgba(232,197,106,0.06)}
+.nav-links button.active{color:var(--gold);background:rgba(232,197,106,0.08)}
+.nav-user{font-size:.85rem;color:var(--gold-dim);display:flex;align-items:center;gap:8px}
+.edit-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(184,72,32,0.12);color:var(--ember);border:1px solid rgba(184,72,32,0.25);border-radius:4px;padding:2px 10px;font-size:.7rem;font-weight:700;animation:editPulse 2s ease infinite;margin-inline-start:8px}
+@keyframes editPulse{0%,100%{opacity:.7}50%{opacity:1}}
+[contenteditable=true]{outline:1px dashed rgba(232,197,106,0.2);cursor:text;border-radius:4px;padding:2px 4px;transition:outline .2s;min-height:1em}
+[contenteditable=true]:focus{outline:1px dashed var(--gold);background:rgba(232,197,106,0.03)}
+
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+.page{display:none;padding:0}.page.active{display:block}
+
+.hero{text-align:center;padding:60px 20px 40px}
+.hero h1{font-size:clamp(1.8rem,5vw,2.8rem);color:var(--gold);margin-bottom:12px}
+.hero p{color:var(--dim);font-size:1.05rem;max-width:500px;margin:0 auto 24px;line-height:1.8}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;font-size:.8rem;color:var(--gold-dim);border:1px solid var(--line);border-radius:20px;padding:6px 14px;margin-bottom:20px;background:rgba(232,197,106,0.03)}
+
+.btn-gold{background:linear-gradient(135deg,var(--gold),#c9a84a);color:#0E0B08;font-weight:800;padding:12px 28px;border-radius:8px;font-size:1rem;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 16px rgba(232,197,106,0.12)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 4px 24px rgba(232,197,106,0.18)}
+.btn-outline{border:1px solid var(--line);color:var(--text);padding:10px 22px;border-radius:8px;font-size:.9rem;display:inline-flex;align-items:center;gap:8px;background:transparent}
+.btn-outline:hover{border-color:var(--gold)}
+.btn-sm{padding:8px 16px;font-size:.85rem}
+.btn-primary{background:var(--gold);color:var(--bg);font-weight:700;width:100%;padding:12px;font-size:1rem;border-radius:6px}
+.btn-primary:hover{background:var(--ember);color:var(--text)}
+
+.sec{padding:40px 0}.sec-header{text-align:center;margin-bottom:28px}
+.sec-title{font-weight:800;color:var(--gold);font-size:clamp(1.3rem,3vw,1.8rem);margin-top:6px}
+.sec-overline{color:var(--ember);font-weight:700;font-size:.85rem}
+
+.guild-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.guild-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;cursor:pointer;transition:all .4s ease}
+.guild-card:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.guild-card-icon{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:10px}
+.guild-card h3{font-weight:800;font-size:1.1rem;margin-bottom:6px}
+.guild-card p{color:var(--dim);font-size:.85rem;line-height:1.6;margin-bottom:12px}
+.guild-card-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:12px;font-size:.85rem}
+
+/* About */
+.about-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:28px;margin-bottom:24px;line-height:1.8;max-width:700px;margin:0 auto 24px}
+.h-list{display:grid;gap:12px;max-width:600px;margin:0 auto}
+.h-item{display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--panel);border:1px solid var(--line);border-radius:10px;border-inline-start:4px solid var(--gold)}
+.h-icon{font-size:1.8rem;width:44px;text-align:center;flex-shrink:0}
+.h-title{font-weight:800;font-size:.95rem}
+.h-name{font-size:.8rem;color:var(--dim);margin-top:2px}
+
+/* Events */
+.ev-list{display:flex;flex-direction:column;gap:10px;max-width:600px;margin:0 auto}
+.ev-item{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 18px;display:flex;align-items:center;gap:14px}
+.ev-date{background:var(--ember);color:var(--text);border-radius:4px;padding:6px 10px;text-align:center;min-width:56px;font-size:.7rem;font-weight:700;flex-shrink:0}
+.ev-date .day{font-size:1.2rem;display:block}
+.ev-info h4{font-size:.95rem}.ev-info p{color:var(--dim);font-size:.8rem}
+
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;text-align:center}
+.step-n{width:40px;height:40px;border-radius:50%;background:var(--gold);color:var(--bg);font-weight:900;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+
+/* Guild detail */
+.gd{max-width:650px;margin:0 auto;padding:40px 20px}
+.gd-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:36px 28px;text-align:center}
+.gd-icon{width:70px;height:70px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 20px}
+
+/* Account */
+.acct-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:28px;max-width:420px;margin:0 auto}
+.acct-card h2{color:var(--gold);text-align:center;margin-bottom:6px}
+.acct-card .sub{text-align:center;color:var(--dim);margin-bottom:20px;font-size:.85rem}
+.fg{margin-bottom:14px}.fg label{display:block;margin-bottom:4px;font-size:.85rem;color:var(--dim)}
+.fg .err{color:#e74c3c;font-size:.8rem;margin-top:4px}
+.toggle-link{color:var(--gold);cursor:pointer}
+
+/* Shop */
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.shop-item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 14px;text-align:center;display:flex;flex-direction:column}
+.shop-item-icon{font-size:2.2rem;margin-bottom:6px}
+.shop-item h3{font-weight:800;font-size:.95rem;margin-bottom:2px}
+.shop-item p{color:var(--dim);font-size:.75rem;flex:1;margin-bottom:8px}.shop-item .price{font-size:.95rem;font-weight:700;color:var(--gold);margin-bottom:8px}
+
+/* Admin */
+.admin-gate{max-width:340px;margin:60px auto;text-align:center}
+.admin-sec{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;margin-bottom:20px}
+.admin-sec h3{color:var(--gold);font-weight:700;font-size:1rem;margin-bottom:12px}
+.fr{display:flex;gap:10px;margin-bottom:10px;align-items:end}.fr>*{flex:1}
+.admin-g-item,.arow{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--panel-light);border-radius:6px;margin-bottom:4px;font-size:.85rem}
+.profile-info{display:grid;gap:8px;max-width:320px;margin:0 auto}
+.profile-info-row{display:flex;justify-content:space-between;padding:8px 14px;background:var(--panel);border-radius:6px;border:1px solid var(--line);font-size:.85rem}
+
+/* Toast */
+#toasts{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:6px}
+.toast{background:var(--panel-light);border:1px solid var(--gold);color:var(--text);padding:10px 18px;border-radius:6px;font-size:.85rem;animation:si .4s ease;max-width:340px}
+@keyframes si{from{transform:translateX(80px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+footer{text-align:center;padding:24px 20px;color:var(--dim);font-size:.82rem;border-top:1px solid var(--line);margin-top:40px}
+
+/* Mobile hamburger */
+.nav-hamburger{display:none;background:transparent;border:1px solid var(--line);color:var(--gold);font-size:1.3rem;padding:8px 12px;border-radius:6px;cursor:pointer}
+.nav-mobile{display:none;background:var(--panel);border-bottom:1px solid var(--line);padding:8px 16px;gap:4px;flex-direction:column}
+.nav-mobile.show{display:flex}
+.nav-mobile button{background:transparent;color:var(--dim);padding:12px 16px;font-size:.9rem;border-radius:6px;white-space:nowrap;font-weight:600;text-align:start;transition:all .4s ease}
+.nav-mobile button:hover,.nav-mobile button.active{color:var(--gold);background:rgba(232,197,106,0.06)}
+
+@media(max-width:700px){
+  .nav-links{display:none !important}
+  .nav-hamburger{display:block}
+  .nav-user{margin-inline-start:auto}
+  .guild-grid,.shop-grid{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}.fr{flex-direction:column}
+  .container{padding:0 16px}
+  .navbar{padding:8px 12px}
+  .hero{padding:32px 12px 24px}
+  .hero p{font-size:.95rem}
+  .sec{padding:24px 0}
+  .about-card{padding:18px}
+  .guild-card,.admin-sec{padding:14px}
+  .gd{padding:20px 12px}
+  .gd-card{padding:24px 16px}
+  .acct-card{padding:20px}
+  .shop-item{padding:14px 10px}
+  .admin-g-item,.arow{flex-direction:column;align-items:start;gap:8px}
+  .admin-g-item>div:last-child,.arow>div:last-child{width:100%;justify-content:flex-start;flex-wrap:wrap}
+  #toasts{right:10px;bottom:10px;left:10px}
+  .toast{max-width:100%;font-size:.8rem;padding:8px 14px}
+  .e-seal{width:72px;height:72px;font-size:1.5rem}
+  .nav-mobile button{padding:10px 14px;font-size:.85rem}
+  .ev-list{gap:8px}
+  .ev-item{padding:10px 12px;gap:10px}
+  .ev-date{min-width:48px;padding:4px 8px}
+  .ev-date .day{font-size:1rem}
+  .h-item{padding:12px 14px;gap:10px}
+  .h-icon{font-size:1.4rem;width:36px}
+  .profile-info-row{flex-direction:column;gap:6px;align-items:center;text-align:center}
+  .shop-item-icon{font-size:1.8rem}
+  .admin-gate{padding:0 12px}
+  .admin-gate>div{padding:20px 16px}
+  .e-ent-btn{padding:10px 24px;font-size:.9rem}
+  .e-tt{font-size:clamp(2rem,9vw,2.8rem)}
+  .e-sub{font-size:.8rem}
+}
+</style>
+</head>
+<body>
+
+<div id="entrance"></div>
+
+<nav class="navbar">
+  <div class="nav-logo" id="navLogo"></div>
+  <button class="nav-hamburger" id="navHam" onclick="toggleNav()" aria-label="القائمة">☰</button>
+  <div class="nav-links" id="navLinks"></div>
+  <div class="nav-user" id="navUser"></div>
+</nav>
+<div class="nav-mobile" id="navMobile"></div>
+
+<div class="container" id="main"></div>
+<div id="toasts"></div>
+<footer>SEKARU — مملكة رقمية عربية</footer>
+
+<script>
+window.onerror=function(m,u,l,c,e){const d=document.createElement('div');d.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#1C1308;color:#E8714A;padding:20px;text-align:center;font-size:1rem;border-top:2px solid #E8714A;max-height:200px;overflow:auto';d.innerHTML='<strong>⚠️ خطأ:</strong> '+m+(e&&e.stack?'<br><span style="font-size:.75rem;color:var(--dim);direction:ltr;display:block;margin-top:8px">'+e.stack.slice(0,500)+'</span>':'');document.body.appendChild(d);console.error('SEKARU:',m,e)};
+// ===== DATA =====
+const K={g:'sk_g',m:'sk_m',s:'sk_se',l:'sk_lo',sh:'sk_sh',h:'sk_h',e:'sk_en3',edm:'sk_edm',edt:'sk_edt',r:'sk_r',fi:'sk_fi'}
+function ld(k,def){try{const d=localStorage.getItem(k);return d?JSON.parse(d):def}catch{return def}}
+function sv(k,v){localStorage.setItem(k,JSON.stringify(v))}
+async function hp(pw){const b=new TextEncoder().encode(pw);const h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+const DG=[
+  {id:'a',name:'نقابة الأنمي',icon:'🎴',accent:'#B84820',desc:'مناقشات الحلقات الجديدة والترشيحات الأسبوعية',members:680,wa:''},
+  {id:'m',name:'نقابة المانجا',icon:'📖',accent:'#E8C56A',desc:'تتبّع الفصول الجديدة ونقاشات الحبكة',members:512,wa:''},
+  {id:'s',name:'نقابة الرياضة',icon:'⚽',accent:'#8B5A2B',desc:'متابعة المباريات وتحديات التوقع',members:445,wa:''},
+  {id:'g',name:'نقابة الألعاب',icon:'🎮',accent:'#B84820',desc:'فرق منافسات وبطولات داخلية',members:390,wa:''},
+]
+const DC=[
+  {icon:'👑',title:'لورد المملكة',name:'—',desc:'المؤسس والقائد الأعلى',color:'#E8C56A'},
+  {icon:'⚜️',title:'نائب اللورد',name:'—',desc:'المسؤول عن النقابات',color:'#C9A84A'},
+  {icon:'📜',title:'مستشار المملكة',name:'—',desc:'المستشار الاستراتيجي',color:'#B84820'},
+  {icon:'⚔️',title:'جنرال الإدارة العليا',name:'—',desc:'يدير العمليات اليومية',color:'#8B5A2B'},
+]
+const DE=[
+  {day:'15',month:'يوليو',title:'بطولة الأنمي',desc:'مشاهدة جماعية'},
+  {day:'22',month:'يوليو',title:'ليلة الألعاب',desc:'بطولة أونلاين'},
+  {day:'5',month:'أغسطس',title:'لقاء الرياضة',desc:'مناقشة الأحداث'},
+]
+
+const AP={admin_access:'دخول لوحة التحكم',manage_ranks:'إدارة الرتب',manage_members:'إدارة الأعضاء',manage_guilds:'إدارة النقابات',manage_shop:'إدارة المتجر',manage_bank:'إدارة البنك',manage_logo:'تغيير الشعار',edit_mode:'تعديل النصوص',manage_hierarchy:'الهيكل الوظيفي'}
+const DR=[
+  {id:'r_founder',name:'مؤسس',icon:'👑',perms:{admin_access:true,manage_ranks:true,manage_members:true,manage_guilds:true,manage_shop:true,manage_bank:true,manage_logo:true,edit_mode:true,manage_hierarchy:true}},
+  {id:'r_admin',name:'إدارة عليا',icon:'⚜️',perms:{admin_access:true,manage_members:true,manage_shop:true,manage_bank:true,edit_mode:true}},
+  {id:'r_member',name:'عضو',icon:'👤',perms:{}}
+]
+// ===== STATE =====
+const S={page:'home',guilds:ld(K.g,DG),member:ld(K.s,null),logo:ld(K.l,''),members:ld(K.m,[]),hier:ld(K.h,DC),ranks:ld(K.r,DR),founderId:ld(K.fi,null)}
+let editMode=ld(K.edm,false)
+let textEdits=ld(K.edt,{})
+
+// ===== HELPERS =====
+function toast(msg){const c=document.getElementById('toasts');const e=document.createElement('div');e.className='toast';e.textContent=msg;c.appendChild(e);setTimeout(()=>e.remove(),3500)}
+function $(id){return document.getElementById(id)}
+function show(id){const e=$(id);if(e)e.classList.add('active')}
+function hide(id){const e=$(id);if(e)e.classList.remove('active')}
+function empty(id){const e=$(id);if(e)e.innerHTML=''}
+function bs(v){return v?'active':''}
+
+function render(){
+  rNav();
+  const mc=$('main');if(!mc)return;
+  const p=S.page;
+  if(p==='home'||p==='guilds') rHome(mc);
+  else if(p==='guild') rGuild(mc);
+  else if(p==='about') rAbout(mc);
+  else if(p==='account') rAccount(mc);
+  else if(p==='profile') rProfile(mc);
+  else if(p==='shop') rShop(mc);
+  else if(p==='bank') rBank(mc);
+  else if(p==='admin') rAdmin(mc);
+  else rHome(mc);
+  if(editMode&&p!=='admin'){applyEdits(mc);setupEditable(mc)}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function go(p){S.page=p;render();if(navOpen)toggleNav()}
+function ghome(){go('home')}
+let navOpen=false
+function toggleNav(){const m=$('navMobile');if(!m)return;navOpen=!navOpen;m.classList.toggle('show',navOpen)}
+
+function persist(){sv(K.g,S.guilds);sv(K.m,S.members)}
+function pMember(){if(S.member){sv(K.s,S.member);const i=S.members.findIndex(x=>x.id===S.member.id);if(i>=0)S.members[i]=S.member;sv(K.m,S.members)}}
+
+// ===== NAV =====
+function rNav(){
+  // Logo
+  const nl=$('navLogo');nl.innerHTML='';
+  if(S.logo){const img=document.createElement('img');img.src=S.logo;img.className='nav-logo-img';img.onclick=ghome;nl.appendChild(img)}
+  else{const d=document.createElement('div');d.className='nav-logo-img';d.textContent='S';d.onclick=ghome;nl.appendChild(d)}
+  const t=document.createElement('span');t.className='nav-logo-text';t.textContent='SEKARU';t.onclick=ghome;nl.appendChild(t);
+  // Links
+  const lks=$('navLinks');lks.innerHTML='';
+  const items=[{k:'home',l:'الرئيسية'},{k:'guilds',l:'النقابات'},{k:'shop',l:'المتجر'},{k:'bank',l:'البنك'},{k:'about',l:'من نحن'}];
+  if(S.member)items.push({k:'profile',l:'حسابي'});
+  items.push({k:'admin',l:'الإدارة'});
+  items.forEach(({k,l})=>{
+    const b=document.createElement('button');b.textContent=l;
+    if(S.page===k)b.className='active';
+    b.onclick=()=>{go(k);if(navOpen)toggleNav()};lks.appendChild(b);
+  });
+  // Mobile nav
+  const mn=$('navMobile');if(mn){mn.innerHTML='';items.forEach(({k,l})=>{const b=document.createElement('button');b.textContent=l;if(S.page===k)b.className='active';b.onclick=()=>{go(k);if(navOpen)toggleNav()};mn.appendChild(b)})}
+  // User
+  const nu=$('navUser');nu.innerHTML='';
+  if(editMode)nu.innerHTML='<span class="edit-badge">✏️ تعديل</span> ';
+  if(S.member)nu.innerHTML+='<span>👤 '+S.member.nickname+'</span><span style="color:var(--gold);font-weight:700">🪙 '+(S.member.coins||0).toLocaleString('ar')+'</span><button onclick="logout()" style="background:var(--panel-light);color:var(--ember);padding:4px 10px;font-size:.8rem;border-radius:6px">خروج</button>';
+  else nu.innerHTML+='<button onclick="go(\'account\')" style="color:var(--gold);font-size:.85rem">🔑 دخول</button>';
+}
+function logout(){localStorage.removeItem(K.s);S.member=null;go('home')}
+
+// ===== HOME =====
+function rHome(mc){
+  const g=S.guilds,mems=S.members,evs=DE;
+  const gc=g.map(gg=>{
+    const cnt=mems?mems.filter(x=>x.guildId===gg.id).length:gg.members;
+    return `<div class="guild-card" onclick="selGuild('${gg.id}')" onmouseenter="this.style.borderColor='${gg.accent}'" onmouseleave="this.style.borderColor='var(--line)'">
+      <div class="guild-card-icon" style="background:${gg.accent}">${gg.icon}</div>
+      <h3>${gg.name}</h3>
+      <p>${gg.desc}</p>
+      <div class="guild-card-foot"><span style="color:var(--dim)">👥 ${cnt.toLocaleString('ar')} عضو</span><span style="color:${gg.accent};font-weight:700">دخول ←</span></div>
+    </div>`
+  }).join('');
+  const tot=mems?mems.length:g.reduce((a,gg)=>a+(gg.members||0),0);
+  mc.innerHTML=`<div class="hero">
+    <div class="hero-badge"><span style="width:6px;height:6px;border-radius:50%;background:var(--ember);display:inline-block;animation:1s ease infinite alternate pulseGlow"></span> المملكة نشطة — ${g.length} نقابات · ${tot.toLocaleString('ar')} عضو</div>
+    ${S.logo?'<img src="'+S.logo+'" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:16px">':'<div style="width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.6rem;font-weight:900;color:var(--gold)">S</div>'}
+    <h1 data-ed="home-title">SEKARU</h1>
+    <p data-ed="home-desc">مملكة رقمية عربية تجمع النقابات — أنمي، مانجا، رياضة، ألعاب، كل نقابة ولها مجتمعها الخاص</p>
+    ${g[0]&&g[0].wa?'<button class="btn-gold" onclick="window.open(\''+g[0].wa+'\',\'_blank\')">انضم إلينا الآن</button>':''}
+  </div>
+  <div class="sec"><div class="sec-header"><div class="sec-overline">⚔️ النقابات</div><h2 class="sec-title" data-ed="home-guilds-title">اختر نقابتك</h2></div>${g.length===0?'<p style="text-align:center;color:var(--dim);padding:40px;border:1px dashed var(--line);border-radius:12px">لا توجد نقابات بعد</p>':'<div class="guild-grid">'+gc+'</div>'}</div>
+  <div class="sec"><div class="sec-header"><div class="sec-overline">📅 الفعاليات</div><h2 class="sec-title" data-ed="home-events-title">الفعاليات القادمة</h2></div><div class="ev-list">${evs.map(e=>'<div class="ev-item"><div class="ev-date"><span class="day">'+e.day+'</span>'+e.month+'</div><div class="ev-info"><h4 data-ed="evt-'+e.day+'-title">'+e.title+'</h4><p data-ed="evt-'+e.day+'-desc">'+e.desc+'</p></div></div>').join('')}</div></div>
+  <div class="sec"><div class="sec-header"><div class="sec-overline">📋 الخطوات</div><h2 class="sec-title" data-ed="home-steps-title">كيف تنضم؟</h2></div><div class="steps"><div class="step"><div class="step-n">1</div><h4 data-ed="step1-title">اختر نقابتك</h4><p data-ed="step1-desc" style="color:var(--dim);font-size:.85rem">تصفح واختر النقابة المناسبة</p></div><div class="step"><div class="step-n">2</div><h4 data-ed="step2-title">سجل حسابك</h4><p data-ed="step2-desc" style="color:var(--dim);font-size:.85rem">أنشئ حساباً مجانياً</p></div><div class="step"><div class="step-n">3</div><h4 data-ed="step3-title">انضم للواتساب</h4><p data-ed="step3-desc" style="color:var(--dim);font-size:.85rem">تواصل مع الأعضاء</p></div></div></div>`;
+}
+
+function selGuild(id){const g=S.guilds.find(x=>x.id===id);if(g){S.selG=g;go('guild')}}
+
+// ===== GUILD =====
+function rGuild(mc){
+  const g=S.selG;if(!g){mc.innerHTML='<p style="text-align:center;padding:40px;color:var(--dim)">لم يتم اختيار نقابة</p>';return}
+  const cnt=S.members?S.members.filter(x=>x.guildId===g.id).length:g.members;
+  mc.innerHTML=`<div class="gd"><button class="btn-outline btn-sm" onclick="go('guilds')">→ العودة</button><div class="gd-card" style="margin-top:20px"><div class="gd-icon" style="background:${g.accent}">${g.icon}</div><h1 data-ed="guild-name" style="color:${g.accent};font-weight:800;font-size:1.6rem;margin-bottom:8px">${g.name}</h1><p data-ed="guild-desc" style="color:var(--dim);font-size:.95rem;line-height:1.8;margin-bottom:20px">${g.desc}</p><p style="color:${g.accent};font-weight:700;margin-bottom:24px">👥 ${cnt.toLocaleString('ar')} عضو في النقابة</p>${g.wa?'<a href="'+g.wa+'" target="_blank" class="btn-gold">🛡️ انضم عبر واتساب</a>':''}</div></div>`
+}
+
+// ===== ABOUT =====
+function rAbout(mc){
+  const h=S.hier;
+  mc.innerHTML=`<div class="sec"><div class="sec-header"><div class="sec-overline">📖 من نحن</div><h2 class="sec-title" data-ed="about-title">قصة مملكة SEKARU</h2></div><div class="about-card"><p data-ed="about-story" style="line-height:1.8">في عالم رقمي مترامي الأطراف، وُلدت SEKARU كفكرة بسيطة — مجموعة من الأصدقاء يجمعهم حب الأنمي والمانجا والرياضة والألعاب. ما بدأ كمجموعة واتساب صغيرة تحول إلى مملكة كاملة تضم نقابات متعددة. المملكة اليوم تضم أعضاءً موزعين على النقابات، وتستمر في النمو.</p></div>
+  <div class="sec-header" style="margin-top:40px"><div class="sec-overline">🏛️ هيكل الإدارة</div><h2 class="sec-title" data-ed="about-hier-title">القادة والإدارة العليا</h2></div>
+  <div class="h-list">${h.map(hh=>'<div class="h-item" style="border-inline-start-color:'+(hh.color||'var(--gold)')+'"><div class="h-icon">'+hh.icon+'</div><div><div class="h-title" style="color:'+(hh.color||'var(--gold)')+'">'+hh.title+'</div><div class="h-name">'+hh.name+'</div></div></div>').join('')}</div></div>`
+}
+
+// ===== ACCOUNT =====
+function rAccount(mc){
+  if(S.member){rProfile(mc);return}
+  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>إنشاء حساب</h2><p class="sub">انضم إلى مملكة SEKARU</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>رقم الهاتف</label><input id="rPh" placeholder="رقم واتساب"></div><div class="fg"><label>النقابة</label><select id="rG">${S.guilds.map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('')}</select></div><button class="btn-primary" onclick="reg()">تسجيل وانضمام</button><p style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--dim)">عندك حساب؟ <span class="toggle-link" onclick="showLogin()">سجّل دخول</span></p></div></div>`
+}
+
+function showLogin(){
+  $('main').innerHTML=`<div class="sec"><div class="acct-card"><h2>تسجيل دخول</h2><p class="sub">مرحباً بعودتك</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="lN" placeholder="لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="lP" placeholder="كلمة السر"></div><button class="btn-primary" onclick="login()">دخول</button><p style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--dim)">ما عندك حساب؟ <span class="toggle-link" onclick="go('account')">سجّل الآن</span></p></div></div>`
+}
+
+async function reg(){
+  const n=$('rN')?.value?.trim(),p=$('rP')?.value,ph=$('rPh')?.value?.trim(),g=$('rG')?.value,msg=$('aMsg');
+  if(!n||!p||!ph){msg.innerHTML='<div class="err">يرجى تعبئة جميع الحقول</div>';return}
+  if(p.length<4){msg.innerHTML='<div class="err">كلمة السر قصيرة (4 أحرف)</div>';return}
+  if(S.members.find(m=>m.nickname===n)){msg.innerHTML='<div class="err">اللقب مستخدم</div>';return}
+  const h=await hp(p);const m={id:'m_'+Date.now(),nickname:n,passwordHash:h,phone:ph,guildId:g,coins:100,inventory:[],rankId:'r_member'};
+  S.members.push(m);sv(K.m,S.members);S.member=m;sv(K.s,m);toast('مرحباً بك يا '+n+'!');go('home')
+}
+
+async function login(){
+  const n=$('lN')?.value?.trim(),p=$('lP')?.value,msg=$('aMsg');
+  if(!n||!p){msg.innerHTML='<div class="err">يرجى إدخال اللقب وكلمة السر</div>';return}
+  const h=await hp(p);const m=S.members.find(x=>x.nickname===n&&x.passwordHash===h);
+  if(!m){msg.innerHTML='<div class="err">اللقب أو كلمة السر غير صحيحة</div>';return}
+  S.member=m;sv(K.s,m);toast('أهلاً بعودتك يا '+n+'!');go('home')
+}
+
+// ===== PROFILE =====
+function rProfile(mc){
+  const m=S.member;if(!m){go('account');return}
+  const g=S.guilds.find(x=>x.id===m.guildId);
+  const rnk=getRank(m.rankId);mc.innerHTML=`<div class="sec"><div class="acct-card"><div style="text-align:center"><div style="width:64px;height:64px;border-radius:50%;background:var(--ember);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:var(--text);margin:0 auto 10px">${m.nickname.charAt(0)}</div><h2 style="margin-bottom:4px">${m.nickname}</h2><p style="color:var(--gold-dim);font-size:.8rem;margin-bottom:4px;font-weight:600">${rnk?rnk.icon+' '+rnk.name:'عضو'}</p><p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone}</p><p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p></div><button class="btn-outline btn-sm" style="width:100%;justify-content:center" onclick="ghome()">العودة للرئيسية</button></div></div>`
+}
+
+// ===== SHOP =====
+const SHOP_DEF=[
+  {id:'sh1',name:'وسام ذهبي',icon:'🏅',desc:'وسام يظهر بجانب اسمك',price:50},
+  {id:'sh2',name:'تاج المملكة',icon:'👑',desc:'تاج ملكي لصفحة حسابك',price:120},
+  {id:'sh3',name:'خلفية خاصة',icon:'🖼️',desc:'خلفية لصفحتك',price:80},
+  {id:'sh4',name:'لقب مميز',icon:'✨',desc:'لقب تحت اسمك',price:200},
+  {id:'sh5',name:'رتبة نجم',icon:'⭐',desc:'نجمة بجانب اسمك',price:150},
+]
+function oi(m,id){return m&&(m.inventory||[]).some(i=>i.id===id)}
+function rShop(mc){
+  const si=ld(K.sh,SHOP_DEF);const m=S.member;
+  function ri(items){return items.map(item=>{const owned=oi(m,item.id),can=m&&(m.coins||0)>=item.price&&!owned;return'<div class="shop-item"><div class="shop-item-icon">'+item.icon+'</div><h3>'+item.name+'</h3><p>'+item.desc+'</p><div class="price">🪙 '+item.price+'</div>'+(owned?'<div style="padding:8px;border-radius:8px;background:rgba(232,197,106,0.1);color:var(--gold);font-size:.8rem;font-weight:700">✅ مملوك</div>':'<button class="btn-gold btn-sm" style="opacity:'+(can?1:.4)+';justify-content:center;width:100%" '+(can?'onclick="buyItem(\''+item.id+'\')"':'')+' '+(m?'':'title="سجّل أولاً"')+'>🛒 '+(m?can?'شراء':'رصيد غير كاف':'سجّل أولاً')+'</button>')+'</div>'}).join('')}
+  mc.innerHTML=`<div class="sec"><div class="sec-header"><div class="sec-overline">🛍️ المتجر</div><h2 class="sec-title" data-ed="shop-title">اشتري مميزات حصرية</h2>${m?'<div style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--gold),#c9a84a);color:#0E0B08;padding:6px 16px;border-radius:20px;font-weight:800;font-size:.95rem;margin-top:10px">🪙 رصيدك: '+(m.coins||0).toLocaleString('ar')+'</div>':''}</div>${!m?'<p style="text-align:center;color:var(--gold-dim);font-size:.85rem;margin-bottom:20px">سجّل دخولك للشراء</p>':''}<div class="shop-grid">${ri(si)}</div></div>`
+}
+function buyItem(id){
+  if(!S.member)return;
+  const si=ld(K.sh,SHOP_DEF);const item=si.find(i=>i.id===id);if(!item)return
+  if((S.member.coins||0)<item.price){toast('رصيد غير كاف');return}
+  const inv=S.member.inventory||[];inv.push({id});S.member.coins=(S.member.coins||0)-item.price;S.member.inventory=inv;pMember();toast('✅ تم شراء '+item.name);rNav();rShop($('main'))
+}
+
+// ===== BANK =====
+function rBank(mc){
+  const m=S.members;const g=S.guilds;
+  const sorted=[...m].sort((a,b)=>(b.coins||0)-(a.coins||0)).slice(0,5);
+  mc.innerHTML=`<div class="sec"><div class="sec-header"><div class="sec-overline">🏦 البنك</div><h2 class="sec-title" data-ed="bank-title">بنك المملكة</h2></div>${m.length===0?'<p style="text-align:center;color:var(--dim)">لا يوجد أعضاء بعد</p>':`
+  <div style="background:var(--panel);border:1px solid var(--gold);border-radius:12px;padding:20px;margin-bottom:24px"><h3 style="text-align:center;color:var(--gold);font-weight:800;margin-bottom:12px">👑 أغنى 5</h3>${sorted.map((mm,i)=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:8px;background:'+(i<3?'rgba(232,197,106,0.08)':'rgba(255,255,255,0.02)')+';margin-bottom:4px"><span style="font-weight:800">'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1))+'</span><span style="font-weight:700">'+mm.nickname+'</span><span style="color:var(--gold);font-weight:700">🪙 '+(mm.coins||0).toLocaleString('ar')+'</span></div>').join('')}</div>
+  <div style="display:grid;gap:16px">${g.filter(gg=>m.some(mm=>mm.guildId===gg.id)).map(gg=>{const gm=m.filter(mm=>mm.guildId===gg.id);const tt=gm.reduce((a,mm)=>a+(mm.coins||0),0);return '<div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;border-inline-start:4px solid '+(gg.accent||'var(--gold)')+'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:1rem"><span>'+gg.icon+'</span><span>'+gg.name+'</span></span><span style="color:var(--gold);font-weight:700">🪙 '+tt.toLocaleString('ar')+'</span></div>'+gm.map(mm=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:6px;background:rgba(255,255,255,0.02);margin-bottom:4px;font-size:.85rem"><span>'+mm.nickname+'</span><span style="color:var(--gold)">🪙 '+(mm.coins||0).toLocaleString('ar')+'</span></div>').join('')+'</div>'}).join('')}</div>`}</div>`
+}
+
+// ===== ADMIN =====
+let aAuth=false
+function rAdmin(mc){
+  if(!aAuth){
+    mc.innerHTML=`<div class="admin-gate"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px;text-align:center"><div style="font-size:1.5rem;margin-bottom:12px">🔒</div><h2 style="color:var(--gold);margin-bottom:6px">دخول الإدارة</h2><p style="color:var(--dim);font-size:.85rem;margin-bottom:20px">للأدمين فقط</p><input type="password" id="aPw" style="text-align:center;margin-bottom:10px" placeholder="كلمة سر الإدارة" onkeydown="if(event.key==='Enter')aLogin()"><div id="aErr" style="color:#E8714A;font-size:.85rem;margin-bottom:8px"></div><button class="btn-primary" onclick="aLogin()">دخول</button><p style="text-align:center;margin-top:14px;font-size:.78rem;color:var(--dim)">أو</p><div class="fg"><input id="aAdmN" placeholder="لقبك" style="font-size:.85rem;text-align:center"></div><input type="password" id="aAdmP" style="text-align:center;margin-bottom:8px;font-size:.85rem" placeholder="كلمة سر الحساب" onkeydown="if(event.key==='Enter')aMemberLogin()"><button class="btn-outline btn-sm" onclick="aMemberLogin()" style="justify-content:center;width:100%;font-size:.85rem">دخول بحساب عضو</button></div></div>`
+    return
+  }
+  const g=S.guilds,m=S.members,h=S.hier;
+  const aRole=S.member?getRank(S.member.rankId):null
+  mc.innerHTML=`<div style="max-width:700px;margin:0 auto;padding:40px 0"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div><h2 style="color:var(--gold);font-weight:800;font-size:1.4rem">⚙️ لوحة التحكم</h2><span style="font-size:.75rem;color:var(--gold-dim)">${S.member?aRole?aRole.icon+' ':'':''}${S.member?aRole?aRole.name+' — '+S.member.nickname:'👑 مدير النظام':''}</span></div><div style="display:flex;gap:6px"><button class="btn-outline btn-sm" onclick="aLogout()">🔒 خروج</button></div></div><p style="color:var(--dim);font-size:.85rem;margin-bottom:24px">التغييرات تُحفظ فوراً في المتصفح</p>
+  ${hasPerm('manage_logo')?`<div class="admin-sec"><div style="display:flex;justify-content:space-between;align-items:center"><h3>🖼️ الشعار</h3></div>${S.logo?'<img src="'+S.logo+'" style="height:50px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px;display:block">':''}<label class="btn-outline btn-sm" style="display:inline-flex;cursor:pointer">📁 اختر صورة<input type="file" accept="image/*" onchange="aLogo(this)" style="display:none"></label>${S.logo?'<button class="btn-outline btn-sm" style="margin-right:6px" onclick="aLogoDel()">🗑 حذف</button>':''}</div>`:''}
+  ${hasPerm('edit_mode')?`<div class="admin-sec"><h3>✏️ وضع التعديل</h3><p style="color:var(--dim);font-size:.8rem;margin-bottom:12px">فعّل لتمكين التعديل المباشر على النصوص في جميع صفحات الموقع</p><button class="${editMode?'btn-gold':'btn-outline'} btn-sm" onclick="toggleEditMode()">${editMode?'✅ وضع التعديل نشط':'🔲 تفعيل التعديل'}</button></div>`:''}
+  ${hasPerm('manage_ranks')?`<div class="admin-sec"><h3>👑 إدارة الرتب</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><input id="aRn" placeholder="اسم الرتبة" style="font-size:.85rem;padding:8px 10px;flex:2"><input id="aRi" placeholder="🎮" style="max-width:50px;font-size:.85rem;text-align:center;padding:8px 6px"><button class="btn-gold btn-sm" onclick="aAddRank()">＋</button></div>${S.ranks.map(r=>'<div style="padding:8px 10px;background:var(--panel-light);border-radius:6px;margin-bottom:4px;font-size:.82rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span>'+r.icon+' <strong>'+r.name+'</strong></span><button class="btn-outline btn-sm" style="padding:2px 6px;font-size:.7rem;color:#e74c3c" onclick="aDelRank(\''+r.id+'\')">🗑</button></div><div style="display:flex;flex-wrap:wrap;gap:3px">'+Object.keys(AP).map(k=>'<span style="cursor:pointer;border-radius:4px;padding:2px 6px;font-size:.68rem;background:'+(r.perms?.[k]?'var(--gold)':'var(--panel)')+';color:'+(r.perms?.[k]?'#0E0B08':'var(--dim)')+';border:1px solid '+(r.perms?.[k]?'var(--gold)':'var(--line)')+'" onclick="aTogglePerm(\''+r.id+'\',\''+k+'\')">'+(r.perms?.[k]?'✅ ':'')+AP[k]+'</span>').join('')+'</div></div>').join('')}</div>`:''}
+  ${hasPerm('manage_hierarchy')?`<div class="admin-sec"><h3>📜 الهيكل الوظيفي</h3>`:'<div class="admin-sec" style="display:none"><h3>📜 الهيكل الوظيفي</h3>'}<div style="display:flex;gap:8px;margin-bottom:10px"><input id="hT" placeholder="اللقب" style="font-size:.85rem;padding:8px 10px"><input id="hN" placeholder="الاسم" style="font-size:.85rem;padding:8px 10px"><button class="btn-gold btn-sm" style="white-space:nowrap" onclick="hAdd()">＋</button></div>${h.map((hh,i)=>'<div style="padding:10px;background:var(--panel-light);border-radius:8px;border:1px solid var(--line);margin-bottom:6px;position:relative"><div style="position:absolute;left:8px;top:8px;display:flex;gap:4px"><button class="btn-outline btn-sm" style="padding:2px 6px;font-size:.7rem;'+(i===0?'opacity:.3':'')+'" '+(i===0?'disabled':'')+' onclick="hUp('+i+')">▲</button><button class="btn-outline btn-sm" style="padding:2px 6px;font-size:.7rem;'+(i===h.length-1?'opacity:.3':'')+'" '+(i===h.length-1?'disabled':'')+' onclick="hDown('+i+')">▼</button><button class="btn-outline btn-sm" style="padding:2px 6px;font-size:.7rem" onclick="hDel('+i+')">🗑</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px"><input value="'+hh.title+'" onchange="hEdit('+i+',\'title\',this.value)" style="font-size:.8rem;padding:6px 8px"><input value="'+hh.name+'" onchange="hEdit('+i+',\'name\',this.value)" style="font-size:.8rem;padding:6px 8px"></div><textarea rows="2" onchange="hEdit('+i+',\'desc\',this.value)" style="font-size:.8rem;padding:6px 8px">'+hh.desc+'</textarea></div>').join('')}</div>
+  ${hasPerm('manage_guilds')?`<div class="admin-sec"><h3>＋ نقابة جديدة</h3><div class="fr"><input id="aN" placeholder="الاسم"><input id="aI" placeholder="🎮" style="max-width:60px;text-align:center"></div><div class="fg"><input id="aD" placeholder="الوصف"></div><div class="fg"><input id="aW" placeholder="رابط واتساب"></div><button class="btn-gold btn-sm" onclick="aAddG()">＋ إضافة</button></div>
+  <div class="admin-sec"><h3>🗂️ النقابات</h3>${g.map(gg=>'<div class="admin-g-item"><div style="display:flex;align-items:center;gap:8px"><span>'+gg.icon+'</span><strong>'+gg.name+'</strong></div><div style="display:flex;gap:4px"><button class="btn-outline btn-sm" style="padding:3px 8px;font-size:.75rem;color:var(--gold)" onclick="aEditG(\''+gg.id+'\')">✏️</button><button class="btn-outline btn-sm" style="padding:3px 8px;font-size:.75rem;color:#e74c3c" onclick="aDelG(\''+gg.id+'\')">🗑</button></div></div>').join('')}${g.map(gg=>'<div id="eg_'+gg.id+'" style="display:none;background:var(--panel-light);border-radius:8px;padding:14px;margin-bottom:8px;border:1px solid var(--gold)"><div class="fr"><input id="egn_'+gg.id+'" value="'+gg.name+'" placeholder="الاسم"><input id="egi_'+gg.id+'" value="'+gg.icon+'" style="max-width:50px;text-align:center"></div><div class="fg" style="margin-top:8px"><input id="egd_'+gg.id+'" value="'+gg.desc+'" placeholder="الوصف"></div><div class="fg"><input id="egw_'+gg.id+'" value="'+gg.wa+'" placeholder="رابط واتساب"></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn-gold btn-sm" onclick="aEditGSave(\''+gg.id+'\')">💾 حفظ</button><button class="btn-outline btn-sm" onclick="aEditGCancel(\''+gg.id+'\')">إلغاء</button></div></div>').join('')}</div>`:''}
+  ${hasPerm('manage_members')?`<div class="admin-sec"><h3>👥 الأعضاء (${m.length})</h3>${m.length===0?'<p style="color:var(--dim)">لا يوجد أعضاء</p>':m.map(mm=>{const mr=getRank(mm.rankId);return'<div class="arow"><span><strong>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+'</strong> 📱'+mm.phone+(mr?' <span style="color:var(--gold-dim);font-size:.75rem">'+mr.icon+mr.name+'</span>':'')+'</span><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><select onchange="aSetMemberRank(\''+mm.id+'\',this.value)" style="width:110px;font-size:.75rem;padding:4px 6px">'+S.ranks.map(r=>'<option value="'+r.id+'"'+(mm.rankId===r.id?' selected':'')+'>'+r.icon+r.name+'</option>').join('')+'</select><span style="color:var(--gold);font-weight:700">🪙 '+(mm.coins||0).toLocaleString('ar')+'</span><button class="btn-outline btn-sm" style="padding:2px 8px;font-size:.7rem" onclick="aCoins(\''+mm.id+'\')">🪙</button><button class="btn-outline btn-sm" style="padding:2px 8px;font-size:.7rem;color:#e74c3c" onclick="aDelM(\''+mm.id+'\')">🗑</button></span></div>'}).join('')}</div>`:''}
+  ${hasPerm('manage_shop')?`<div class="admin-sec"><h3>🛍️ إدارة المتجر</h3>`:'<div class="admin-sec" style="display:none"><h3>🛍️ إدارة المتجر</h3>'}<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><input id="aSi" placeholder="🎁" style="max-width:50px;font-size:.85rem;text-align:center;padding:8px 6px"><input id="aSn" placeholder="اسم المنتج" style="flex:2;font-size:.85rem;padding:8px 10px"><input id="aSp" placeholder="السعر 🪙" type="number" style="max-width:80px;font-size:.85rem;padding:8px 6px"><button class="btn-gold btn-sm" onclick="aShopAdd()">＋</button></div><div class="fg"><input id="aSd" placeholder="الوصف" style="font-size:.85rem;padding:8px 10px"></div>${function(){const si=ld(K.sh,SHOP_DEF);return si.length===0?'<p style="color:var(--dim);font-size:.8rem">لا توجد منتجات</p>':si.map((item,i)=>'<div class="arow" style="padding:8px 10px;font-size:.82rem"><span>'+item.icon+' <strong>'+item.name+'</strong> 🪙'+item.price+'</span><span><button class="btn-outline btn-sm" style="padding:2px 8px;font-size:.7rem;color:var(--gold)" onclick="aShopEdit('+i+')">✏️</button><button class="btn-outline btn-sm" style="padding:2px 8px;font-size:.7rem;color:#e74c3c" onclick="aShopDel('+i+')">🗑</button></span></div>').join('')}()}</div>
+  ${hasPerm('manage_bank')?`<div class="admin-sec"><h3>🏦 إدارة البنك</h3>${g.filter(gg=>m.some(mm=>mm.guildId===gg.id)).length===0?'<p style="color:var(--dim);font-size:.8rem">مافي أعضاء في النقابات</p>':g.filter(gg=>m.some(mm=>mm.guildId===gg.id)).map(gg=>{const gm=m.filter(mm=>mm.guildId===gg.id);const tt=gm.reduce((a,mm)=>a+(mm.coins||0),0);return'<div class="arow" style="padding:8px 10px;font-size:.82rem;margin-bottom:6px"><span>'+gg.icon+' <strong>'+gg.name+'</strong> 🪙'+tt.toLocaleString('ar')+'</span><div style="display:flex;gap:4px"><input id="agc_'+gg.id+'" type="number" value="10" style="width:55px;font-size:.75rem;padding:4px 6px;text-align:center"><button class="btn-outline btn-sm" style="padding:2px 6px;font-size:.7rem;color:var(--gold)" onclick="aBankGuildAdd(\''+gg.id+'\')">➕</button></div></div>'}).join('')}</div>`:''}</div>`
+}
+
+function toggleEditMode(){
+  editMode=!editMode;sv(K.edm,editMode)
+  if(!editMode){const mc=$('main');if(mc)mc.querySelectorAll('[contenteditable]').forEach(el=>el.removeAttribute('contenteditable'))}
+  toast(editMode?'✏️ وضع التعديل نشط — انقر على أي نص لتحريره':'تم إيقاف التعديل')
+  if(S.page==='admin')rAdmin($('main'));else render()
+}
+function applyEdits(container){
+  if(!container)return
+  container.querySelectorAll('[data-ed]').forEach(el=>{
+    const k=el.dataset.ed
+    if(textEdits[k]&&el.textContent!==textEdits[k])el.textContent=textEdits[k]
+  })
+}
+function setupEditable(container){
+  if(!container||!editMode)return
+  container.querySelectorAll('[data-ed]').forEach(el=>{
+    el.contentEditable=true
+    el.addEventListener('blur',function(){
+      const k=this.dataset.ed
+      if(this.textContent!==(textEdits[k]||'')){textEdits[k]=this.textContent;sv(K.edt,textEdits)}
+    },{once:false})
+  })
+}
+function aEditG(id){const e=$('eg_'+id);if(e)e.style.display=e.style.display==='none'?'block':'none'}
+function aEditGSave(id){
+  const n=$('egn_'+id),i=$('egi_'+id),d=$('egd_'+id),w=$('egw_'+id),g=S.guilds.find(x=>x.id===id)
+  if(!g||!n)return
+  if(n.value.trim())g.name=n.value.trim()
+  if(i.value.trim())g.icon=i.value.trim()
+  g.desc=d.value.trim();g.wa=w.value.trim()
+  sv(K.g,S.guilds);toast('✅ تم تحديث النقابة');rAdmin($('main'))
+}
+function aEditGCancel(id){const e=$('eg_'+id);if(e)e.style.display='none'}
+function aShopAdd(){
+  const n=$('aSn'),i=$('aSi'),p=$('aSp'),d=$('aSd')
+  if(!n||!n.value.trim()){toast('أدخل اسم المنتج');return}
+  const si=ld(K.sh,SHOP_DEF);si.push({id:'sh_'+Date.now(),name:n.value.trim(),icon:i?.value?.trim()||'🎁',desc:d?.value?.trim()||'',price:Math.max(1,parseInt(p?.value)||10)})
+  sv(K.sh,si);n.value='';if(i)i.value='';if(p)p.value='';if(d)d.value='';toast('✅ تمت الإضافة');rAdmin($('main'))
+}
+function aShopEdit(i){
+  const v=prompt('🛍️ اسم المنتج الجديد:','');if(v===null||!v.trim())return
+  const si=ld(K.sh,SHOP_DEF);if(!si[i])return
+  si[i].name=v.trim()
+  const p2=prompt('🪙 السعر الجديد:',String(si[i].price));if(p2!==null&&!isNaN(p2))si[i].price=Math.max(1,parseInt(p2))
+  const d2=prompt('📝 الوصف الجديد:',si[i].desc);if(d2!==null)si[i].desc=d2
+  const i2=prompt('🎁 الأيقونة الجديدة:',si[i].icon);if(i2!==null)si[i].icon=i2.trim()||'🎁'
+  sv(K.sh,si);toast('✅ تم التعديل');rAdmin($('main'))
+}
+function aShopDel(i){if(!confirm('حذف هذا المنتج؟'))return;const si=ld(K.sh,SHOP_DEF);si.splice(i,1);sv(K.sh,si);toast('✅ تم الحذف');rAdmin($('main'))}
+function aBankGuildAdd(id){
+  const v=parseInt($('agc_'+id)?.value)||10;if(v<=0)return
+  S.members=S.members.map(m=>{if(m.guildId===id)m.coins=(m.coins||0)+v;return m})
+  sv(K.m,S.members);if(S.member){const f=S.members.find(x=>x.id===S.member.id);if(f){S.member=f;sv(K.s,S.member)}}
+  toast('✅ تم إضافة '+v+' 🪙 لأعضاء النقابة');rAdmin($('main'))
+}
+function hasPerm(p){return !S.member||getRank(S.member.rankId)?.perms?.[p]}
+function aSetMemberRank(id,rid){
+  const m=S.members.find(x=>x.id===id);if(!m)return
+  m.rankId=rid;sv(K.m,S.members);const rn=getRank(rid);toast('✅ رتبة '+m.nickname+' ← '+(rn?rn.name:rid))
+}
+function aTogglePerm(rid,perm){
+  const r=S.ranks.find(x=>x.id===rid);if(!r)return
+  if(!r.perms)r.perms={};r.perms[perm]=!r.perms[perm];sv(K.r,S.ranks);rAdmin($('main'))
+}
+function aAddRank(){
+  const n=$('aRn')?.value?.trim(),i=$('aRi')?.value?.trim()
+  if(!n){toast('أدخل اسم الرتبة');return}
+  const p={};Object.keys(AP).forEach(k=>p[k]=false)
+  S.ranks.push({id:'r_'+Date.now(),name:n,icon:i||'🎖️',perms:p})
+  sv(K.r,S.ranks);$('aRn').value='';$('aRi').value='';toast('✅ تمت إضافة الرتبة');rAdmin($('main'))
+}
+function aDelRank(id){
+  if(!confirm('حذف الرتبة؟'))return
+  if(S.ranks.length<=1){toast('لا تحذف آخر رتبة');return}
+  S.ranks=S.ranks.filter(r=>r.id!==id);sv(K.r,S.ranks)
+  S.members=S.members.map(m=>{if(m.rankId===id)m.rankId='r_member';return m});sv(K.m,S.members)
+  toast('✅ تم الحذف');rAdmin($('main'))
+}
+async function aMemberLogin(){
+  const n=$('aAdmN')?.value?.trim(),p=$('aAdmP')?.value,eh=$('aErr')
+  if(!n||!p){if(eh)eh.textContent='أدخل اللقب وكلمة السر';return}
+  const h=await hp(p);const m=S.members.find(x=>x.nickname===n&&x.passwordHash===h)
+  if(!m){if(eh)eh.textContent='اللقب أو كلمة السر غير صحيحة';return}
+  const r=getRank(m.rankId)
+  if(!r||!r.perms?.admin_access){if(eh)eh.textContent='حسابك ليس لديه صلاحية الدخول';return}
+  S.member=m;sv(K.s,m);aAuth=true;go('admin');toast('✅ مرحباً '+m.nickname)
+}
+function aLogin(){
+  const p=$('aPw')?.value,eh=$('aErr')
+  if(!p){if(eh)eh.textContent='أدخل كلمة سر الإدارة';return}
+  if(p!=='sekaro2026'){if(eh)eh.textContent='كلمة السر غير صحيحة';return}
+  S.member=null;aAuth=true;go('admin');toast('✅ مرحباً بك في لوحة التحكم')
+}
+function aLogout(){aAuth=false;go('home')}
+function aLogo(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{S.logo=r.result;sv(K.l,S.logo);toast('تم تغيير الشعار');rNav();rAdmin($('main'))};r.readAsDataURL(f)}
+function aLogoDel(){S.logo='';sv(K.l,'');rNav();rAdmin($('main'));toast('تم حذف الشعار')}
+function aAddG(){
+  const n=$('aN')?.value?.trim();if(!n){toast('أدخل اسم النقابة');return}
+  S.guilds.push({id:'g_'+Date.now(),name:n,icon:$('aI')?.value?.trim()||'🛡️',accent:'#B84820',desc:$('aD')?.value?.trim()||'',members:0,wa:$('aW')?.value?.trim()||''});
+  sv(K.g,S.guilds);$('aN').value='';$('aI').value='';$('aD').value='';$('aW').value='';toast('تمت الإضافة');rAdmin($('main'))
+}
+function aDelG(id){if(S.guilds.length<=1){toast('لا تحذف آخر نقابة');return}S.guilds=S.guilds.filter(g=>g.id!==id);sv(K.g,S.guilds);toast('تم الحذف');rAdmin($('main'))}
+function aCoins(id){
+  const v=prompt('🪙 عدد العملات (+ للإضافة، - للخصم):','10');if(!v||isNaN(v))return
+  const i=S.members.findIndex(m=>m.id===id);if(i<0)return
+  S.members[i].coins=Math.max(0,(S.members[i].coins||0)+Number(v));sv(K.m,S.members)
+  if(S.member&&S.member.id===id){S.member.coins=S.members[i].coins;sv(K.s,S.member)}
+  toast('✅ تم التعديل');rAdmin($('main'))
+}
+function aDelM(id){if(!confirm('حذف العضو؟'))return;const m=S.members.find(x=>x.id===id);S.members=S.members.filter(x=>x.id!==id);sv(K.m,S.members);if(S.member&&S.member.id===id){localStorage.removeItem(K.s);S.member=null}toast('✅ تم حذف '+m?.nickname);rAdmin($('main'))}
+function hAdd(){const t=$('hT'),n=$('hN');if(!t.value.trim())return;const icons=['⚜️','📜','🛡️','🔮','🏹'];const colors=['#E8C56A','#B84820','#7A4E28','#C9A84A','#E8714A'];S.hier.push({title:t.value,name:n.value||'—',desc:'',icon:icons[S.hier.length%icons.length],color:colors[S.hier.length%colors.length]});t.value='';n.value='';sv(K.h,S.hier);rAdmin($('main'))}
+function hDel(i){S.hier=S.hier.filter((_,idx)=>idx!==i);sv(K.h,S.hier);rAdmin($('main'))}
+function hEdit(i,f,v){if(S.hier[i])S.hier[i][f]=v;sv(K.h,S.hier)}
+function hUp(i){if(i===0)return;[S.hier[i-1],S.hier[i]]=[S.hier[i],S.hier[i-1]];sv(K.h,S.hier);rAdmin($('main'))}
+function hDown(i){if(i===S.hier.length-1)return;[S.hier[i],S.hier[i+1]]=[S.hier[i+1],S.hier[i]];sv(K.h,S.hier);rAdmin($('main'))}
+
+// ===== ENTRANCE BUILDER =====
+function buildEntrance(){
+  const e=$('entrance');if(!e)return
+  // Stars
+  for(let i=0;i<60;i++){const s=document.createElement('div');s.className='e-star';s.style.cssText=`width:${r(1,3)}px;height:${r(1,3)}px;left:${r(0,100)}%;top:${r(0,60)}%;background:${['#E8C56A','#E8DDD0','#fff','#A68B4E'][r(0,3)]};animation-delay:${(Math.random()*2).toFixed(2)}s;animation-duration:${(r(1,3))}s`;e.appendChild(s)}
+  // Glow
+  const g=document.createElement('div');g.className='e-glow';e.appendChild(g)
+  // Rays
+  for(let i=0;i<5;i++){const el=document.createElement('div');el.className='e-ray';el.style.cssText=`transform:translate(-50%,-50%) rotate(${i*36-72}deg);animation-delay:${(i*0.4).toFixed(1)}s`;e.appendChild(el)}
+  // Islands
+  for(let i=0;i<3;i++){const is=document.createElement('div');is.className='e-island';if(i===1)is.className+=' e-island2';if(i===2)is.className+=' e-island3';is.style.left=i===0?'0':i===1?'25%':'auto';is.style.right=i===2?'0':'auto';e.appendChild(is)}
+  // Runes
+  const runes=['᛭','ᛟ','ᚱ','ᛗ','ᚨ','ᛏ','ᛉ','ᚲ','ᛇ','ᛉ'];for(let i=0;i<8;i++){const el=document.createElement('div');el.className='e-rune';el.textContent=runes[r(0,runes.length-1)];el.style.cssText=`left:${r(3,94)}%;top:${r(8,65)}%;animation-delay:${(Math.random()*4).toFixed(1)}s;opacity:${(Math.random()*.2+.05).toFixed(2)}`;e.appendChild(el)}
+  // Particles
+  for(let i=0;i<12;i++){const p=document.createElement('div');p.className='e-pdot';p.style.cssText=`left:${r(5,95)}%;top:${r(10,90)}%;animation-delay:${(Math.random()*5).toFixed(1)}s;animation-duration:${(r(3,7))}s;background:${['#E8C56A','#B84820','#fff'][r(0,2)]}`;e.appendChild(p)}
+  // Logo
+  const logo=ld(K.l)||null
+  // Content
+  const cc=document.createElement('div');cc.className='e-cc'
+  const seal=document.createElement('div');seal.className='e-seal';seal.id='entranceSeal'
+  if(logo){const im=document.createElement('img');im.src=logo;im.alt='S';seal.appendChild(im)}else{seal.textContent='S'}
+  const tt=document.createElement('div');tt.className='e-tt';tt.textContent='SEKARU'
+  const sub=document.createElement('div');sub.className='e-sub';sub.textContent='~ المملكة الرقمية ~'
+  const div=document.createElement('div');div.className='e-div'
+  const entDiv=document.createElement('div');entDiv.className='e-ent'
+  const btn=document.createElement('button');btn.className='e-ent-btn';btn.textContent='ادخل المملكة';btn.onclick=function(){
+    e.classList.add('hide');setTimeout(()=>{e.style.display='none';render()},900)
+  }
+  entDiv.appendChild(btn)
+  const hint=document.createElement('div');hint.className='e-hint';hint.textContent='اضغط لدخول المملكة'
+  cc.appendChild(seal);cc.appendChild(tt);cc.appendChild(sub);cc.appendChild(div);cc.appendChild(entDiv);cc.appendChild(hint)
+  e.appendChild(cc)
+  // Animate in
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{div.classList.add('show');setTimeout(()=>{entDiv.classList.add('show');setTimeout(()=>hint.classList.add('show'),500)},300)})})
+}
+function r(mi,ma){return Math.floor(Math.random()*(ma-mi+1))+mi}
+
+// ===== INIT =====
+function getRank(id){return S.ranks.find(r=>r.id===id)}
+function init(){
+  // Set founder
+  const founder=S.members.find(m=>m.nickname==='ياتو')
+  if(founder){S.founderId=founder.id;sv(K.fi,S.founderId);founder.rankId='r_founder';sv(K.m,S.members)}
+  // Migrate old rank text to rankId
+  S.members=S.members.map(m=>{if(m.rank&&!m.rankId){m.rankId=S.ranks.find(r=>r.name===m.rank)?.id||'r_member';delete m.rank}return m})
+  // Clean expired inventory
+  S.members=S.members.map(m=>{const iv=(m.inventory||[]).filter(i=>!i.exp||i.exp>Date.now());return iv.length!==(m.inventory||[]).length?{...m,inventory:iv}:m});
+  if(S.member){const f=S.members.find(x=>x.id===S.member.id);if(f)S.member=f;sv(K.s,S.member)}
+  // Entrance
+  buildEntrance()
+}
+init();
+</script>
+</body>
+</html>
