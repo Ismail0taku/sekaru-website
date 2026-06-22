@@ -96,7 +96,7 @@ function createTables() {
   db.run(`CREATE TABLE IF NOT EXISTS hierarchy (
     id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, name TEXT DEFAULT '—',
     description TEXT DEFAULT '', icon TEXT DEFAULT '⚜️', color TEXT DEFAULT '#F4C95D',
-    sort_order INTEGER DEFAULT 0
+    image TEXT DEFAULT '', sort_order INTEGER DEFAULT 0
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT, day TEXT NOT NULL, month TEXT NOT NULL,

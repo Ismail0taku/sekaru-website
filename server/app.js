@@ -229,22 +229,23 @@ app.post('/api/bank/add-guild', auth, async (req, res) => {
 
 app.get('/api/hierarchy', (req, res) => res.json(all('SELECT * FROM hierarchy ORDER BY sort_order ASC')));
 app.post('/api/hierarchy', auth, async (req, res) => {
-  const { title, name, description, icon, color } = req.body;
+  const { title, name, description, icon, color, image } = req.body;
   if (!title) return res.status(400).json({ error: 'Title required' });
   const max = one('SELECT COALESCE(MAX(sort_order),-1) as m FROM hierarchy');
   const icons = ['⚜️','📜','🛡️','🔮','🏹']; const colors = ['#F4C95D','#C2541F','#8B5A2B','#D9A83E','#E8714A'];
-  run('INSERT INTO hierarchy (title,name,description,icon,color,sort_order) VALUES (?,?,?,?,?,?)',
-    [title, name||'—', description||'', icon||icons[0], color||colors[0], (max?.m||0)+1]);
+  run('INSERT INTO hierarchy (title,name,description,icon,color,image,sort_order) VALUES (?,?,?,?,?,?,?)',
+    [title, name||'—', description||'', icon||icons[0], color||colors[0], image||'', (max?.m||0)+1]);
   await saveDBAsync(); res.json({ ok: true });
 });
 app.put('/api/hierarchy/:id', auth, async (req, res) => {
-  const { title, name, description, icon, color, sort_order } = req.body;
+  const { title, name, description, icon, color, image, sort_order } = req.body;
   const sets = []; const binds = [];
   if (title !== undefined) { sets.push('title=?'); binds.push(title); }
   if (name !== undefined) { sets.push('name=?'); binds.push(name); }
   if (description !== undefined) { sets.push('description=?'); binds.push(description); }
   if (icon !== undefined) { sets.push('icon=?'); binds.push(icon); }
   if (color !== undefined) { sets.push('color=?'); binds.push(color); }
+  if (image !== undefined) { sets.push('image=?'); binds.push(image); }
   if (sort_order !== undefined) { sets.push('sort_order=?'); binds.push(sort_order); }
   if (!sets.length) return res.status(400).json({ error: 'No fields' });
   binds.push(req.params.id);
