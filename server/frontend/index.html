@@ -627,9 +627,11 @@ function aGImgClear(id){_gpc[id]='';rAdmin($('main'))}
 async function aAddG(){
   const n=$('aN')?.value?.trim();if(!n){toast('أدخل اسم النقابة');return}
   const imgInput=$('aGImg');let image=''
-  if(imgInput?.files?.[0]){image=await new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(imgInput.files[0])})}
-  await api('/guilds',{method:'POST',body:JSON.stringify({name:n,icon:$('aI')?.value?.trim()||'🛡️',description:$('aD')?.value?.trim()||'',wa_link:$('aW')?.value?.trim()||'',image})})
-  await loadAll();$('aN').value='';$('aI').value='';$('aD').value='';$('aW').value='';$('aGImg').value='';toast('تمت الإضافة');rAdmin($('main'))
+  if(imgInput?.files?.[0]){try{image=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=e=>res(e.target.result);fr.onerror=rej;fr.readAsDataURL(imgInput.files[0])})}catch{toast('⚠️ فشل قراءة الصورة')}}
+  try{
+    await api('/guilds',{method:'POST',body:JSON.stringify({name:n,icon:$('aI')?.value?.trim()||'🛡️',description:$('aD')?.value?.trim()||'',wa_link:$('aW')?.value?.trim()||'',image})})
+    await loadAll();$('aN').value='';$('aI').value='';$('aD').value='';$('aW').value='';$('aGImg').value='';toast('✅ تمت الإضافة');rAdmin($('main'))
+  }catch(e){toast('⚠️ فشل الإضافة: '+e.message)}
 }
 async function aDelG(id){
   if(S.guilds.length<=1){toast('لا تحذف آخر نقابة');return}

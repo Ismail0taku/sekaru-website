@@ -139,11 +139,13 @@ app.get('/api/guilds', (req, res) => res.json(all('SELECT * FROM guilds')));
 app.post('/api/guilds', auth, async (req, res) => {
   const { name, icon, accent, description, wa_link, image } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
-  const id = 'g_' + uuidv4().slice(0, 8);
-  run('INSERT INTO guilds (id,name,icon,accent,description,wa_link,image) VALUES (?,?,?,?,?,?,?)',
-    [id, name, icon||'🛡️', accent||'#C2541F', description||'', wa_link||'', image||'']);
-  await saveDBAsync();
-  res.json({ id });
+  try {
+    const id = 'g_' + uuidv4().slice(0, 8);
+    run('INSERT INTO guilds (id,name,icon,accent,description,wa_link,image) VALUES (?,?,?,?,?,?,?)',
+      [id, name, icon||'🛡️', accent||'#C2541F', description||'', wa_link||'', image||'']);
+    await saveDBAsync();
+    res.json({ id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.put('/api/guilds/:id', auth, async (req, res) => {
   const { name, icon, accent, description, wa_link, image } = req.body;
@@ -155,9 +157,11 @@ app.put('/api/guilds/:id', auth, async (req, res) => {
   if (wa_link !== undefined) { sets.push('wa_link=?'); binds.push(wa_link); }
   if (image !== undefined) { sets.push('image=?'); binds.push(image); }
   if (!sets.length) return res.status(400).json({ error: 'No fields' });
-  binds.push(req.params.id);
-  run(`UPDATE guilds SET ${sets.join(',')} WHERE id=?`, binds);
-  await saveDBAsync(); res.json({ ok: true });
+  try {
+    binds.push(req.params.id);
+    run(`UPDATE guilds SET ${sets.join(',')} WHERE id=?`, binds);
+    await saveDBAsync(); res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.delete('/api/guilds/:id', auth, async (req, res) => {
   run('DELETE FROM guilds WHERE id=?', [req.params.id]);
