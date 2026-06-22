@@ -352,7 +352,7 @@ function rNav(){
   const mn=$('navMobile');if(mn){mn.innerHTML='';items.forEach(({k,l})=>{const b=document.createElement('button');b.textContent=l;if(S.page===k)b.className='active';b.onclick=()=>{go(k);if(navOpen)toggleNav()};mn.appendChild(b)})}
   const nu=$('navUser');nu.innerHTML=''
   if(editMode)nu.innerHTML='<span class="edit-badge">✏️ تعديل</span> '
-  if(S.member)nu.innerHTML+='<span>👤 '+S.member.nickname+'</span><span style="color:var(--gold);font-weight:700">🪙 '+(S.member.coins||0).toLocaleString('ar')+'</span><button onclick="logout()" style="background:var(--panel-light);color:var(--ember);padding:4px 10px;font-size:.8rem;border-radius:6px">خروج</button>'
+  if(S.member){const inv=S.member.inventory||[];const b=[inv.some(i=>i.id==='sh1')?'🏅':'',inv.some(i=>i.id==='sh2')?'👑':'',inv.some(i=>i.id==='sh5')?'⭐':''].filter(Boolean).join(' ');nu.innerHTML+='<span>👤 '+S.member.nickname+(b?' '+b:'')+'</span><span style="color:var(--gold);font-weight:700">🪙 '+(S.member.coins||0).toLocaleString('ar')+'</span><button onclick="logout()" style="background:var(--panel-light);color:var(--ember);padding:4px 10px;font-size:.8rem;border-radius:6px">خروج</button>'}
   else nu.innerHTML+='<button onclick="go(\'account\')" style="background:linear-gradient(135deg,#F4C95D,#d9a83e);color:#1A1304;font-size:.85rem;font-weight:800;padding:6px 16px;border-radius:8px">🔑 دخول</button>'
 }
 function logout(){clearToken();S.member=null;aAuth=false;go('home')}
@@ -423,21 +423,29 @@ async function login(){
   }catch(err){msg.innerHTML='<div class="err">'+err.message+'</div>'}
 }
 
+function hasItem(m,id){return m&&m.inventory&&m.inventory.some(i=>i.id===id)}
+const IT={sh1:{icon:'🏅',label:'وسام ذهبي'},sh2:{icon:'👑',label:'تاج المملكة'},sh3:{icon:'🖼️',label:'خلفية خاصة'},sh4:{icon:'✨',label:'لقب مميز'},sh5:{icon:'⭐',label:'رتبة نجم'}}
+
 // ===== PROFILE =====
 function rProfile(mc){
   const m=S.member;if(!m){go('account');return}
   const g=S.guilds.find(x=>x.id===m.guild_id)
   const rnk=S.ranks.find(x=>x.id===m.rank_id)
   const avatarUrl=m.avatar?(m.avatar.startsWith('http')||m.avatar.startsWith('data:')?m.avatar:window.location.origin+m.avatar):''
-  mc.innerHTML=`<div class="sec"><div class="acct-card"><div style="text-align:center">
+  const bg=hasItem(m,'sh3')?' style="background:linear-gradient(135deg,#1C1308,#2A1D0F);box-shadow:0 0 30px rgba(244,201,93,0.08)"':''
+  const badges=[hasItem(m,'sh1')?'🏅':'',hasItem(m,'sh2')?'👑':'',hasItem(m,'sh5')?'⭐':''].filter(Boolean).join(' ')
+  const extraTitle=hasItem(m,'sh4')?m.inventory.find(i=>i.id==='sh4')?.title||'':null
+  mc.innerHTML=`<div class="sec"><div class="acct-card"${bg}><div style="text-align:center">
     <div class="avatar-upload">
       ${avatarUrl?'<img src="'+avatarUrl+'" class="avatar-img">':'<div class="avatar-placeholder">'+m.nickname.charAt(0)+'</div>'}
       <label class="btn-outline btn-sm" style="cursor:pointer;display:inline-flex">📷 تغيير الصورة<input type="file" accept="image/*" onchange="uploadAvatar(this)" style="display:none"></label>
     </div>
-    <h2 style="margin-bottom:4px">${m.nickname}</h2>
+    <h2 style="margin-bottom:4px">${m.nickname}${badges?' '+badges:''}</h2>
     <p style="color:var(--gold-dim);font-size:.8rem;margin-bottom:4px;font-weight:600">${rnk?rnk.icon+' '+rnk.name:'عضو'}</p>
+    ${extraTitle?'<p style="color:var(--gold);font-size:.75rem;margin-bottom:4px">✨ '+extraTitle+'</p>':''}
     <p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone||'غير محدد'}</p>
     <p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
+    ${m.inventory&&m.inventory.length?'<div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:12px">'+m.inventory.map(i=>IT[i.id]?'<span style="background:var(--panel-light);padding:4px 8px;border-radius:6px;font-size:.75rem;border:1px solid var(--line)">'+IT[i.id].icon+' '+IT[i.id].label+'</span>':'').join('')+'</div>':''}
     <hr style="border-color:var(--line);margin:16px 0">
     <div class="fg"><input type="password" id="cpOld" placeholder="كلمة السر القديمة" style="font-size:.85rem;padding:8px 10px"></div>
     <div class="fg"><input type="password" id="cpNew" placeholder="كلمة السر الجديدة" style="font-size:.85rem;padding:8px 10px"></div>
