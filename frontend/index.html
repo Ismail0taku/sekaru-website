@@ -432,7 +432,7 @@ function rProfile(mc){
   const g=S.guilds.find(x=>x.id===m.guild_id)
   const rnk=S.ranks.find(x=>x.id===m.rank_id)
   const avatarUrl=m.avatar?(m.avatar.startsWith('http')||m.avatar.startsWith('data:')?m.avatar:window.location.origin+m.avatar):''
-  const bg=hasItem(m,'sh3')?' style="background:linear-gradient(135deg,#1C1308,#2A1D0F);box-shadow:0 0 30px rgba(244,201,93,0.08)"':''
+  const bg=hasItem(m,'sh3')?' style="background:linear-gradient(135deg,#2A1D0F,#3D2A15);border:2px solid var(--gold);box-shadow:0 0 40px rgba(244,201,93,0.12)"':''
   const badges=[hasItem(m,'sh1')?'🏅':'',hasItem(m,'sh2')?'👑':'',hasItem(m,'sh5')?'⭐':''].filter(Boolean).join(' ')
   const extraTitle=hasItem(m,'sh4')?m.inventory.find(i=>i.id==='sh4')?.title||'':null
   mc.innerHTML=`<div class="sec"><div class="acct-card"${bg}><div style="text-align:center">
