@@ -97,7 +97,7 @@ app.post('/api/auth/master', (req, res) => {
 });
 
 app.get('/api/members', optionalAuth, (req, res) => {
-  const rows = all('SELECT id,nickname,phone,guild_id,coins,inventory,rank_id,avatar,email,created_at FROM users ORDER BY coins DESC');
+  const rows = all('SELECT id,nickname,phone,guild_id,coins,inventory,rank_id,avatar,profile_bg,email,created_at FROM users ORDER BY coins DESC');
   rows.forEach(r => { try { r.inventory = JSON.parse(r.inventory); } catch { r.inventory = []; } });
   res.json(rows);
 });
@@ -129,6 +129,19 @@ app.post('/api/upload/avatar', auth, upload.single('avatar'), async (req, res) =
   run('UPDATE users SET avatar=? WHERE id=?', [b64, req.user.id]);
   await saveDBAsync();
   res.json({ url: b64 });
+});
+
+app.post('/api/profile/background', auth, upload.single('background'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file' });
+  const b64 = 'data:' + req.file.mimetype + ';base64,' + req.file.buffer.toString('base64');
+  run('UPDATE users SET profile_bg=? WHERE id=?', [b64, req.user.id]);
+  await saveDBAsync();
+  res.json({ url: b64 });
+});
+app.put('/api/profile/background', auth, async (req, res) => {
+  run("UPDATE users SET profile_bg='' WHERE id=?", [req.user.id]);
+  await saveDBAsync();
+  res.json({ ok: true });
 });
 
 app.get('/api/guilds', (req, res) => res.json(all('SELECT * FROM guilds')));

@@ -474,10 +474,12 @@ function rProfile(mc){
   const g=S.guilds.find(x=>x.id===m.guild_id)
   const rnk=S.ranks.find(x=>x.id===m.rank_id)
   const avatarUrl=m.avatar?(m.avatar.startsWith('http')||m.avatar.startsWith('data:')?m.avatar:window.location.origin+m.avatar):''
-  const bg=hasItem(m,'sh3')?' style="background:linear-gradient(135deg,#2A1D0F,#3D2A15);border:2px solid var(--gold);box-shadow:0 0 40px rgba(232,197,106,0.12)"':''
+  const hasBG=hasItem(m,'sh3')
+  const customBg=m.profile_bg
+  const bgStyle=hasBG?customBg?' style="background:url(\''+customBg+'\') center/cover no-repeat;border:2px solid var(--gold);box-shadow:0 0 40px rgba(232,197,106,0.12);position:relative"':' style="background:linear-gradient(135deg,#2A1D0F,#3D2A15);border:2px solid var(--gold);box-shadow:0 0 40px rgba(232,197,106,0.12)"':''
   const badges=[hasItem(m,'sh1')?'🏅':'',hasItem(m,'sh2')?'👑':'',hasItem(m,'sh5')?'⭐':''].filter(Boolean).join(' ')
   const extraTitle=hasItem(m,'sh4')?m.inventory.find(i=>i.id==='sh4')?.title||'':null
-  mc.innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card"${bg} style="margin:0">
+  mc.innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card"${bgStyle} style="margin:0">
     <div style="text-align:center">
       <div class="avatar-upload">
         ${avatarUrl?'<img src="'+avatarUrl+'" class="avatar-img">':'<div class="avatar-placeholder">'+m.nickname.charAt(0)+'</div>'}
@@ -489,6 +491,7 @@ function rProfile(mc){
       <p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone||'غير محدد'}</p>
       <p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
       ${m.inventory&&m.inventory.length?'<div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:12px">'+m.inventory.map(i=>IT[i.id]?'<span style="background:var(--panel-light);padding:4px 8px;border-radius:6px;font-size:.75rem;border:1px solid var(--line)">'+IT[i.id].icon+' '+IT[i.id].label+'</span>':'').join('')+'</div>':''}
+      ${hasBG?'<label class="btn-outline btn-sm" style="cursor:pointer;display:inline-flex;width:100%;justify-content:center;margin-bottom:8px">🖼️ تغيير الخلفية<input type="file" accept="image/*" onchange="uploadBg(this)" style="display:none"></label>'+(customBg?'<button class="btn-outline btn-sm" style="width:100%;justify-content:center;color:#e74c3c" onclick="clearBg()">🗑 حذف الخلفية</button>':''):''}
       <hr style="border-color:var(--line);margin:16px 0">
       <div class="fg"><input type="password" id="cpOld" placeholder="كلمة السر القديمة" style="font-size:.85rem;padding:8px 10px"></div>
       <div class="fg"><input type="password" id="cpNew" placeholder="كلمة السر الجديدة" style="font-size:.85rem;padding:8px 10px"></div>
@@ -545,6 +548,25 @@ async function uploadAvatar(input){
     toast('✅ تم تغيير الصورة')
     if(S.page==='profile')rProfile($('main'))
   }catch(err){toast('⚠️ فشل رفع الصورة: '+err.message)}
+}
+async function uploadBg(input){
+  const f=input.files[0];if(!f)return
+  const fd=new FormData();fd.append('background',f)
+  try{
+    const r=await apiForm('/profile/background',fd)
+    S.member.profile_bg=r.url
+    await loadAll()
+    toast('✅ تم تغيير الخلفية')
+    if(S.page==='profile')rProfile($('main'))
+  }catch(err){toast('⚠️ '+err.message)}
+}
+async function clearBg(){
+  try{
+    await api('/profile/background',{method:'PUT',body:JSON.stringify({url:''})})
+    S.member.profile_bg=''
+    toast('✅ تم حذف الخلفية')
+    if(S.page==='profile')rProfile($('main'))
+  }catch(e){toast('⚠️ '+e.message)}
 }
 async function changePw(){
   const old=$('cpOld')?.value,pw=$('cpNew')?.value

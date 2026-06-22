@@ -96,6 +96,7 @@ function createTables() {
     accent TEXT DEFAULT '#C2541F', description TEXT DEFAULT '', wa_link TEXT DEFAULT '',
     image TEXT DEFAULT '', bank INTEGER DEFAULT 0
   )`);
+  try{db.run('ALTER TABLE users ADD COLUMN profile_bg TEXT DEFAULT \'\'')}catch(e){}
   try{db.run('ALTER TABLE guilds ADD COLUMN image TEXT DEFAULT \'\'')}catch(e){}
   try{db.run('ALTER TABLE guilds ADD COLUMN bank INTEGER DEFAULT 0')}catch(e){}
   db.run(`CREATE TABLE IF NOT EXISTS shop_items (
