@@ -40,8 +40,8 @@ app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISO
 
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { nickname, password, phone } = req.body;
-    if (!nickname || !password || !phone) return res.status(400).json({ error: 'اللقب وكلمة السر ورقم الواتساب مطلوبون' });
+    const { nickname, password, phone, guildId } = req.body;
+    if (!nickname || !password || !phone || !guildId) return res.status(400).json({ error: 'اللقب وكلمة السر ورقم الواتساب والنقابة مطلوبون' });
     if (password.length < 4) return res.status(400).json({ error: 'كلمة السر قصيرة' });
     const existing = one('SELECT id FROM users WHERE nickname=?', [nickname]);
     if (existing) return res.status(409).json({ error: 'اللقب مستخدم مسبقاً' });
@@ -49,10 +49,10 @@ app.post('/api/auth/register', async (req, res) => {
     const id = 'u_' + uuidv4().slice(0, 8);
     const dummyEmail = nickname.replace(/\s+/g,'_').toLowerCase() + '_' + id.slice(-4) + '@sekaru.local';
     run('INSERT INTO users (id,email,nickname,password_hash,phone,guild_id,rank_id) VALUES (?,?,?,?,?,?,?)',
-      [id, dummyEmail, nickname, hash, phone, '', 'r_member']);
+      [id, dummyEmail, nickname, hash, phone, guildId, 'r_member']);
     await saveDBAsync();
     const token = jwt.sign({ id, nickname }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id, nickname, phone: phone || '', guildId: '', coins: 100, inventory: [], rankId: 'r_member', avatar: '' } });
+    res.json({ token, user: { id, nickname, phone: phone || '', guild_id: guildId, coins: 100, inventory: [], rankId: 'r_member', avatar: '' } });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -83,6 +83,21 @@ app.post('/api/auth/master', (req, res) => {
   if (req.body.password !== MASTER_PASSWORD) return res.status(401).json({ error: 'Wrong master password' });
   const token = jwt.sign({ id: 'master', nickname: 'Master', role: 'master' }, JWT_SECRET, { expiresIn: '7d' });
   res.json({ token, master: true });
+});
+app.post('/api/auth/change-password', auth, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) return res.status(400).json({ error: 'كلمة السر القديمة والجديدة مطلوبتان' });
+    if (newPassword.length < 4) return res.status(400).json({ error: 'كلمة السر الجديدة قصيرة' });
+    const user = one('SELECT * FROM users WHERE id=?', [req.user.id]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const ok = await bcrypt.compare(oldPassword, user.password_hash);
+    if (!ok) return res.status(401).json({ error: 'كلمة السر القديمة غير صحيحة' });
+    const hash = await bcrypt.hash(newPassword, 10);
+    run('UPDATE users SET password_hash=? WHERE id=?', [hash, req.user.id]);
+    await saveDBAsync();
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.get('/api/members', optionalAuth, (req, res) => {
@@ -251,6 +266,18 @@ app.get('/api/events', (req, res) => res.json(all('SELECT * FROM events')));
 app.post('/api/events', auth, async (req, res) => {
   const { day, month, title, description } = req.body;
   run('INSERT INTO events (day,month,title,description) VALUES (?,?,?,?)', [day, month, title, description||'']);
+  await saveDBAsync(); res.json({ ok: true });
+});
+app.put('/api/events/:id', auth, async (req, res) => {
+  const { day, month, title, description } = req.body;
+  const sets = []; const binds = [];
+  if (day !== undefined) { sets.push('day=?'); binds.push(day); }
+  if (month !== undefined) { sets.push('month=?'); binds.push(month); }
+  if (title !== undefined) { sets.push('title=?'); binds.push(title); }
+  if (description !== undefined) { sets.push('description=?'); binds.push(description); }
+  if (!sets.length) return res.status(400).json({ error: 'No fields' });
+  binds.push(req.params.id);
+  run(`UPDATE events SET ${sets.join(',')} WHERE id=?`, binds);
   await saveDBAsync(); res.json({ ok: true });
 });
 app.delete('/api/events/:id', auth, async (req, res) => {

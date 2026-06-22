@@ -397,14 +397,14 @@ function rAbout(mc){
 // ===== ACCOUNT =====
 function rAccount(mc){
   if(S.member){rProfile(mc);return}
-  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>حسابي</h2><p class="sub">انضم أو سجّل دخول</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>رقم واتساب</label><input id="rPh" placeholder="رقم واتساب"></div><button class="btn-outline" onclick="reg()" style="width:100%">تسجيل</button><hr style="border-color:var(--panel);margin:14px 0"><div class="fg"><input id="lN" placeholder="لقبك"><input type="password" id="lP" placeholder="كلمة السر" style="margin-top:8px"></div><button class="btn-gold" onclick="login()" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F4C95D,#d9a83e)!important">دخول</button></div></div>`
+  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>حسابي</h2><p class="sub">انضم أو سجّل دخول</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>النقابة</label><select id="rG"><option value="">اختر نقابتك</option>${S.guilds.map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('')}</select></div><div class="fg"><label>رقم واتساب</label><input id="rPh" placeholder="رقم واتساب"></div><button class="btn-outline" onclick="reg()" style="width:100%">تسجيل</button><hr style="border-color:var(--panel);margin:14px 0"><div class="fg"><input id="lN" placeholder="لقبك"><input type="password" id="lP" placeholder="كلمة السر" style="margin-top:8px"></div><button class="btn-gold" onclick="login()" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F4C95D,#d9a83e)!important">دخول</button></div></div>`
 }
 
 async function reg(){
-  const n=$('rN')?.value?.trim(),p=$('rP')?.value,ph=$('rPh')?.value?.trim(),msg=$('aMsg')
-  if(!n||!p||!ph){msg.innerHTML='<div class="err">يرجى تعبئة جميع الحقول</div>';return}
+  const n=$('rN')?.value?.trim(),p=$('rP')?.value,g=$('rG')?.value,ph=$('rPh')?.value?.trim(),msg=$('aMsg')
+  if(!n||!p||!g||!ph){msg.innerHTML='<div class="err">يرجى تعبئة جميع الحقول</div>';return}
   try{
-    const r=await api('/auth/register',{method:'POST',body:JSON.stringify({nickname:n,password:p,phone:ph})})
+    const r=await api('/auth/register',{method:'POST',body:JSON.stringify({nickname:n,password:p,guildId:g,phone:ph})})
     setToken(r.token);S.member=r.user;toast('مرحباً بك يا '+n+'!');go('home')
   }catch(err){msg.innerHTML='<div class="err">'+err.message+'</div>'}
 }
@@ -427,7 +427,7 @@ function rProfile(mc){
   const g=S.guilds.find(x=>x.id===m.guild_id)
   const rnk=S.ranks.find(x=>x.id===m.rank_id)
   const avatarUrl=m.avatar?(m.avatar.startsWith('http')||m.avatar.startsWith('data:')?m.avatar:window.location.origin+m.avatar):''
-  const bg=hasItem(m,'sh3')?' style="background:linear-gradient(135deg,#2A1D0F,#3D2A15);border:2px solid var(--gold);box-shadow:0 0 40px rgba(244,201,93,0.12)"':''
+  const bg=hasItem(m,'sh3')?' style="background:linear-gradient(135deg,#2A1D0F,#3D2A15);border:2px solid var(--gold);box-shadow:0 0 40px rgba(232,197,106,0.12)"':''
   const badges=[hasItem(m,'sh1')?'🏅':'',hasItem(m,'sh2')?'👑':'',hasItem(m,'sh5')?'⭐':''].filter(Boolean).join(' ')
   const extraTitle=hasItem(m,'sh4')?m.inventory.find(i=>i.id==='sh4')?.title||'':null
   mc.innerHTML=`<div class="sec"><div class="acct-card"${bg}><div style="text-align:center">
@@ -699,6 +699,7 @@ async function hDel(i){
 }
 async function hEdit(i,f,v){
   const item=S.hier[i];if(!item)return
+  if(f==='desc')f='description'
   await api('/hierarchy/'+item.id,{method:'PUT',body:JSON.stringify({[f]:v})})
   await loadAll()
 }
