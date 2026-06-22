@@ -266,20 +266,20 @@ function toggleNav(){const m=$('navMobile');if(!m)return;navOpen=!navOpen;m.clas
 // ===== DATA LOADING =====
 async function loadAll(){
   try{
-    const [guilds,members,ranks,hier,shop,events,edits,logoRes,founderRes]=await Promise.all([
+    const [guilds,members,ranks,hier,shop,events,edits,logoRes,founderRes]=await Promise.allSettled([
       api('/guilds'),api('/members'),api('/ranks'),api('/hierarchy'),
       api('/shop'),api('/events'),api('/text-edits'),
       api('/settings/logo'),api('/settings/founder_id')
     ])
-    S.guilds=guilds.length?guilds:DG
-    S.members=members
-    S.ranks=ranks.length?ranks:DR
-    S.hier=hier.length?hier:DC
-    S.shop=shop
-    S.events=events
-    S.textEdits=edits||{}
-    S.logo=logoRes.value||''
-    S.founderId=founderRes.value||null
+    if(guilds.status==='fulfilled')S.guilds=guilds.value.length?guilds.value:DG
+    if(members.status==='fulfilled')S.members=members.value
+    if(ranks.status==='fulfilled')S.ranks=ranks.value.length?ranks.value:DR
+    if(hier.status==='fulfilled')S.hier=hier.value.length?hier.value:DC
+    if(shop.status==='fulfilled')S.shop=shop.value
+    if(events.status==='fulfilled')S.events=events.value
+    if(edits.status==='fulfilled')S.textEdits=edits.value||{}
+    if(logoRes.status==='fulfilled')S.logo=logoRes.value.value||''
+    if(founderRes.status==='fulfilled')S.founderId=founderRes.value.value||null
   }catch(e){toast('⚠️ فشل تحميل البيانات: '+e.message)}
   // Refresh session (ALWAYS, even if data loading failed)
   const tok=getToken()
@@ -643,9 +643,11 @@ async function aEditGSave(id){
   if(i.value.trim())body.icon=i.value.trim()
   body.description=d.value.trim();body.wa_link=w.value.trim()
   if(_gpc[id]!==undefined)body.image=_gpc[id]
-  await api('/guilds/'+id,{method:'PUT',body:JSON.stringify(body)})
-  delete _gpc[id]
-  await loadAll();toast('✅ تم تحديث النقابة');rAdmin($('main'))
+  try{
+    await api('/guilds/'+id,{method:'PUT',body:JSON.stringify(body)})
+    delete _gpc[id]
+    await loadAll();toast('✅ تم تحديث النقابة');rAdmin($('main'))
+  }catch(e){toast('⚠️ فشل الحفظ: '+e.message)}
 }
 function aEditGCancel(id){const e=$('eg_'+id);if(e)e.style.display='none'}
 

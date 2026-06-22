@@ -266,25 +266,22 @@ function toggleNav(){const m=$('navMobile');if(!m)return;navOpen=!navOpen;m.clas
 // ===== DATA LOADING =====
 async function loadAll(){
   try{
-    const [guilds,members,ranks,hier,shop,events,edits,logoRes,founderRes]=await Promise.all([
+    const [guilds,members,ranks,hier,shop,events,edits,logoRes,founderRes]=await Promise.allSettled([
       api('/guilds'),api('/members'),api('/ranks'),api('/hierarchy'),
       api('/shop'),api('/events'),api('/text-edits'),
       api('/settings/logo'),api('/settings/founder_id')
     ])
-    // Detect if the server returned seed data (cold start)
-    const isSeed=guilds.length===4&&guilds.every(g=>'agms'.includes(g.id))
-    const hasCache=!!(S.guilds&&S.guilds.length)
-    S.guilds=(!isSeed&&guilds.length)?guilds:(hasCache?S.guilds:DG)
-    S.members=members.length?members:(S.members||[])
-    S.ranks=ranks.length?ranks:(S.ranks||DR)
-    S.hier=hier.length?hier:(S.hier||DC)
-    S.shop=shop.length?shop:(S.shop||[])
-    S.events=events.length?events:(S.events||DE)
-    S.textEdits=Object.keys(edits||{}).length?edits:(S.textEdits||{})
-    S.logo=logoRes.value||(S.logo||'')
-    S.founderId=founderRes.value||(S.founderId||null)
+    if(guilds.status==='fulfilled'){const gv=guilds.value;const isSeed=gv.length===4&&gv.every(g=>'agms'.includes(g.id));const hasCache=!!(S.guilds&&S.guilds.length);S.guilds=(!isSeed&&gv.length)?gv:(hasCache?S.guilds:DG)}
+    if(members.status==='fulfilled')S.members=members.value.length?members.value:(S.members||[])
+    if(ranks.status==='fulfilled')S.ranks=ranks.value.length?ranks.value:(S.ranks||DR)
+    if(hier.status==='fulfilled')S.hier=hier.value.length?hier.value:(S.hier||DC)
+    if(shop.status==='fulfilled')S.shop=shop.value.length?shop.value:(S.shop||[])
+    if(events.status==='fulfilled')S.events=events.value.length?events.value:(S.events||DE)
+    if(edits.status==='fulfilled')S.textEdits=Object.keys(edits.value||{}).length?edits.value:(S.textEdits||{})
+    if(logoRes.status==='fulfilled')S.logo=logoRes.value.value||(S.logo||'')
+    if(founderRes.status==='fulfilled')S.founderId=founderRes.value.value||(S.founderId||null)
     // Cache to localStorage (only if not seed data)
-    if(!isSeed)try{localStorage.setItem('sk_cache',JSON.stringify({guilds:S.guilds,members:S.members,ranks:S.ranks,hier:S.hier,shop:S.shop,events:S.events,edits:S.textEdits,logo:S.logo,founder:S.founderId,_ts:Date.now()}))}catch{}
+    if(guilds.status==='fulfilled'&&!guilds.value.every(g=>'agms'.includes(g.id)))try{localStorage.setItem('sk_cache',JSON.stringify({guilds:S.guilds,members:S.members,ranks:S.ranks,hier:S.hier,shop:S.shop,events:S.events,edits:S.textEdits,logo:S.logo,founder:S.founderId,_ts:Date.now()}))}catch{}
   }catch(e){
     // Fallback to localStorage cache
     try{
@@ -680,9 +677,11 @@ async function aEditGSave(id){
   if(i.value.trim())body.icon=i.value.trim()
   body.description=d.value.trim();body.wa_link=w.value.trim()
   if(_gpc[id]!==undefined)body.image=_gpc[id]
-  await api('/guilds/'+id,{method:'PUT',body:JSON.stringify(body)})
-  delete _gpc[id]
-  await loadAll();toast('✅ تم تحديث النقابة');rAdmin($('main'))
+  try{
+    await api('/guilds/'+id,{method:'PUT',body:JSON.stringify(body)})
+    delete _gpc[id]
+    await loadAll();toast('✅ تم تحديث النقابة');rAdmin($('main'))
+  }catch(e){toast('⚠️ فشل الحفظ: '+e.message)}
 }
 function aEditGCancel(id){const e=$('eg_'+id);if(e)e.style.display='none'}
 
