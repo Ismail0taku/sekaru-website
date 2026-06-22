@@ -228,6 +228,34 @@ app.post('/api/bank/add-guild', auth, async (req, res) => {
   await saveDBAsync(); res.json({ ok: true });
 });
 
+// Guild bank deposit
+app.post('/api/guilds/:id/deposit', auth, async (req, res) => {
+  const { amount } = req.body;
+  if (!amount || amount <= 0) return res.status(400).json({ error: 'Invalid amount' });
+  const user = one('SELECT coins FROM users WHERE id=?', [req.user.id]);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  if (user.coins < amount) return res.status(400).json({ error: 'رصيد غير كاف' });
+  const guild = one('SELECT bank FROM guilds WHERE id=?', [req.params.id]);
+  if (!guild) return res.status(404).json({ error: 'Guild not found' });
+  run('UPDATE users SET coins=coins-? WHERE id=?', [amount, req.user.id]);
+  run('UPDATE guilds SET bank=bank+? WHERE id=?', [amount, req.params.id]);
+  await saveDBAsync();
+  res.json({ ok: true, userCoins: user.coins - amount, bank: (guild.bank||0) + amount });
+});
+
+// Guild bank withdraw (admin only)
+app.post('/api/guilds/:id/withdraw', auth, async (req, res) => {
+  const { amount } = req.body;
+  if (!amount || amount <= 0) return res.status(400).json({ error: 'Invalid amount' });
+  const guild = one('SELECT bank FROM guilds WHERE id=?', [req.params.id]);
+  if (!guild) return res.status(404).json({ error: 'Guild not found' });
+  if ((guild.bank||0) < amount) return res.status(400).json({ error: 'رصيد النقابة غير كاف' });
+  run('UPDATE guilds SET bank=bank-? WHERE id=?', [amount, req.params.id]);
+  run('UPDATE users SET coins=coins+? WHERE id=?', [amount, req.user.id]);
+  await saveDBAsync();
+  res.json({ ok: true, userCoins: (one('SELECT coins FROM users WHERE id=?', [req.user.id])).coins, bank: (guild.bank||0) - amount });
+});
+
 app.get('/api/hierarchy', (req, res) => res.json(all('SELECT * FROM hierarchy ORDER BY sort_order ASC')));
 app.post('/api/hierarchy', auth, async (req, res) => {
   const { title, name, description, icon, color, image } = req.body;
