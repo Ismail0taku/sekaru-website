@@ -281,7 +281,7 @@ async function loadAll(){
     if(logoRes.status==='fulfilled')S.logo=logoRes.value.value||(S.logo||'')
     if(founderRes.status==='fulfilled')S.founderId=founderRes.value.value||(S.founderId||null)
     // Cache to localStorage (only if not seed data)
-    if(guilds.status==='fulfilled'&&!guilds.value.every(g=>'agms'.includes(g.id)))try{localStorage.setItem('sk_cache',JSON.stringify({guilds:S.guilds,members:S.members,ranks:S.ranks,hier:S.hier,shop:S.shop,events:S.events,edits:S.textEdits,logo:S.logo,founder:S.founderId,_ts:Date.now()}))}catch{}
+    if(guilds.status==='fulfilled'&&guilds.value.length&&!guilds.value.every(g=>'agms'.includes(g.id)))try{localStorage.setItem('sk_cache',JSON.stringify({guilds:S.guilds,members:S.members,ranks:S.ranks,hier:S.hier,shop:S.shop,events:S.events,edits:S.textEdits,logo:S.logo,founder:S.founderId,_ts:Date.now()}))}catch{}
   }catch(e){
     // Fallback to localStorage cache
     try{
@@ -564,11 +564,11 @@ function rShop(mc){
 }
 async function buyItem(id){
   if(!S.member)return
+  const title=id==='sh4'?prompt('📝 أدخل لقبك المميز (يظهر تحت اسمك):','')||'':undefined
   try{
-    const r=await api('/shop/buy',{method:'POST',body:JSON.stringify({itemId:id})})
+    const r=await api('/shop/buy',{method:'POST',body:JSON.stringify({itemId:id,title})})
     S.member.coins=r.coins
-    if(!S.member.inventory)S.member.inventory=[]
-    S.member.inventory.push({id})
+    S.member.inventory=r.inventory||[]
     toast('✅ تم الشراء');rNav();rShop($('main'))
   }catch(err){toast('⚠️ '+err.message)}
 }

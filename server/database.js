@@ -1,8 +1,9 @@
 const initSqlJs = require('sql.js');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'sekaru.db');
+const DB_PATH = process.env.DB_PATH || path.join(os.tmpdir(), 'sekaru.db');
 let db = null;
 let _savePromise = Promise.resolve();
 

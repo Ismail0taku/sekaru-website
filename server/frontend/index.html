@@ -333,7 +333,7 @@ function rNav(){
   const nu=$('navUser');nu.innerHTML=''
   if(editMode)nu.innerHTML='<span class="edit-badge">✏️ تعديل</span> '
   nu.innerHTML+='<div class="ns-wrap"><input id="nsI" placeholder="🔍 بحث" oninput="rNavSearch(this.value)" onfocus="nsExpand(this)" onblur="nsShrink(this)" style="font-size:.8rem;padding:5px 8px;border-radius:6px;background:var(--panel-light);border:1px solid var(--line);color:var(--text);width:80px;transition:width .2s"><div id="nsR" class="ns-drop"></div></div>'
-  if(S.member)nu.innerHTML+='<span>👤 '+S.member.nickname+'</span><span style="color:var(--gold);font-weight:700">🪙 '+(S.member.coins||0).toLocaleString('ar')+'</span><button onclick="logout()" style="background:var(--panel-light);color:var(--ember);padding:4px 10px;font-size:.8rem;border-radius:6px">خروج</button>'
+  if(S.member){const mi=S.member.inventory||[],has=id=>mi.some(x=>x.id===id);nu.innerHTML+='<span>👤 '+(has('sh2')?'👑 ':'')+(has('sh5')?'⭐ ':'')+S.member.nickname+(has('sh1')?' 🏅':'')+'</span><span style="color:var(--gold);font-weight:700">🪙 '+(S.member.coins||0).toLocaleString('ar')+'</span><button onclick="logout()" style="background:var(--panel-light);color:var(--ember);padding:4px 10px;font-size:.8rem;border-radius:6px">خروج</button>'}
   else nu.innerHTML+='<button onclick="go(\'account\')" style="background:linear-gradient(135deg,#E8C56A,#c9a84a);color:#0E0B08;font-size:.85rem;font-weight:800;padding:6px 16px;border-radius:8px">🔑 دخول</button>'
 }
 function logout(){clearToken();S.member=null;aAuth=false;go('home')}
@@ -446,11 +446,10 @@ async function login(){
 function rMemberSearch(q){
   const c=$('mSR');if(!c)return
   const m=S.members
-  if(!q){c.innerHTML=m.length===0?'<p style="color:var(--dim);font-size:.85rem">لا يوجد أعضاء</p>':m.slice(0,30).map(mm=>{const g=S.guilds.find(x=>x.id===mm.guild_id);return'<div class="m-sr-item"><span>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+'</span><span style="color:var(--dim);font-size:.78rem">📱'+mm.phone+(g?' <span style="color:var(--gold-dim)">'+g.icon+g.name+'</span>':'')+' 🪙'+(mm.coins||0).toLocaleString('ar')+'</span></div>'}).join('');return}
-  const flt=m.filter(mm=>mm.nickname.toLowerCase().includes(q.toLowerCase())||(mm.phone||'').includes(q))
-  if(!flt.length){c.innerHTML='<p style="color:var(--dim);font-size:.85rem">لا توجد نتائج</p>';return}
-  c.innerHTML=flt.map(mm=>{const g=S.guilds.find(x=>x.id===mm.guild_id);return'<div class="m-sr-item"><span>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+'</span><span style="color:var(--dim);font-size:.78rem">📱'+mm.phone+(g?' <span style="color:var(--gold-dim)">'+g.icon+g.name+'</span>':'')+' 🪙'+(mm.coins||0).toLocaleString('ar')+'</span></div>'}).join('')
-}
+  const mmap=mm=>{const g=S.guilds.find(x=>x.id===mm.guild_id);const inv=mm.inventory||[];const icons=inv.map(i=>IT[i.id]?IT[i.id].icon:'').filter(Boolean).join(' ');return'<div class="m-sr-item"><span>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+(icons?' <span style="font-size:.9rem">'+icons+'</span>':'')+'</span><span style="color:var(--dim);font-size:.78rem">📱'+mm.phone+(g?' <span style="color:var(--gold-dim)">'+g.icon+g.name+'</span>':'')+' 🪙'+(mm.coins||0).toLocaleString('ar')+'</span></div>'}
+
+function hasItem(m,id){return m&&m.inventory&&m.inventory.some(i=>i.id===id)}
+const IT={sh1:{icon:'🏅',label:'وسام ذهبي'},sh2:{icon:'👑',label:'تاج المملكة'},sh3:{icon:'🖼️',label:'خلفية خاصة'},sh4:{icon:'✨',label:'لقب مميز'},sh5:{icon:'⭐',label:'رتبة نجم'}}
 
 // ===== PROFILE =====
 function rProfile(mc){
@@ -458,16 +457,21 @@ function rProfile(mc){
   const g=S.guilds.find(x=>x.id===m.guild_id)
   const rnk=S.ranks.find(x=>x.id===m.rank_id)
   const avatarUrl=m.avatar?(m.avatar.startsWith('http')||m.avatar.startsWith('data:')?m.avatar:window.location.origin+m.avatar):''
-  mc.innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card" style="margin:0">
+  const bg=hasItem(m,'sh3')?' style="background:linear-gradient(135deg,#2A1D0F,#3D2A15);border:2px solid var(--gold);box-shadow:0 0 40px rgba(232,197,106,0.12)"':''
+  const badges=[hasItem(m,'sh1')?'🏅':'',hasItem(m,'sh2')?'👑':'',hasItem(m,'sh5')?'⭐':''].filter(Boolean).join(' ')
+  const extraTitle=hasItem(m,'sh4')?m.inventory.find(i=>i.id==='sh4')?.title||'':null
+  mc.innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card"${bg} style="margin:0">
     <div style="text-align:center">
       <div class="avatar-upload">
         ${avatarUrl?'<img src="'+avatarUrl+'" class="avatar-img">':'<div class="avatar-placeholder">'+m.nickname.charAt(0)+'</div>'}
         <label class="btn-outline btn-sm" style="cursor:pointer;display:inline-flex">📷 تغيير الصورة<input type="file" accept="image/*" onchange="uploadAvatar(this)" style="display:none"></label>
       </div>
-      <h2 style="margin-bottom:4px">${m.nickname}</h2>
+      <h2 style="margin-bottom:4px">${m.nickname}${badges?' '+badges:''}</h2>
       <p style="color:var(--gold-dim);font-size:.8rem;margin-bottom:4px;font-weight:600">${rnk?rnk.icon+' '+rnk.name:'عضو'}</p>
+      ${extraTitle?'<p style="color:var(--gold);font-size:.75rem;margin-bottom:4px">✨ '+extraTitle+'</p>':''}
       <p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone||'غير محدد'}</p>
       <p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
+      ${m.inventory&&m.inventory.length?'<div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:12px">'+m.inventory.map(i=>IT[i.id]?'<span style="background:var(--panel-light);padding:4px 8px;border-radius:6px;font-size:.75rem;border:1px solid var(--line)">'+IT[i.id].icon+' '+IT[i.id].label+'</span>':'').join('')+'</div>':''}
       <button class="btn-outline btn-sm" style="width:100%;justify-content:center" onclick="ghome()">العودة للرئيسية</button>
     </div>
   </div><div class="acct-card" style="margin:0">
@@ -531,11 +535,11 @@ function rShop(mc){
 }
 async function buyItem(id){
   if(!S.member)return
+  const title=id==='sh4'?prompt('📝 أدخل لقبك المميز (يظهر تحت اسمك):','')||'':undefined
   try{
-    const r=await api('/shop/buy',{method:'POST',body:JSON.stringify({itemId:id})})
+    const r=await api('/shop/buy',{method:'POST',body:JSON.stringify({itemId:id,title})})
     S.member.coins=r.coins
-    if(!S.member.inventory)S.member.inventory=[]
-    S.member.inventory.push({id})
+    S.member.inventory=r.inventory||[]
     toast('✅ تم الشراء');rNav();rShop($('main'))
   }catch(err){toast('⚠️ '+err.message)}
 }

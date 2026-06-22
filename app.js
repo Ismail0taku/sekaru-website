@@ -358,7 +358,7 @@ app.post('/api/upload/logo', auth, upload.single('logo'), async (req, res) => {
 });
 
 app.post('/api/shop/buy', auth, async (req, res) => {
-  const { itemId } = req.body;
+  const { itemId, title } = req.body;
   if (!itemId) return res.status(400).json({ error: 'Item ID required' });
   const item = one('SELECT * FROM shop_items WHERE id=?', [itemId]);
   if (!item) return res.status(404).json({ error: 'Item not found' });
@@ -367,9 +367,10 @@ app.post('/api/shop/buy', auth, async (req, res) => {
   let inv = []; try { inv = JSON.parse(user.inventory); } catch {}
   if (user.coins < item.price) return res.status(400).json({ error: 'Not enough coins' });
   if (inv.some(i => i.id === itemId)) return res.status(400).json({ error: 'Already owned' });
-  inv.push({ id: itemId });
+  const entry = itemId === 'sh4' && title ? { id: itemId, title } : { id: itemId };
+  inv.push(entry);
   run('UPDATE users SET coins=?, inventory=? WHERE id=?', [user.coins - item.price, JSON.stringify(inv), req.user.id]);
-  await saveDBAsync(); res.json({ ok: true, coins: user.coins - item.price });
+  await saveDBAsync(); res.json({ ok: true, coins: user.coins - item.price, inventory: inv });
 });
 
 app.use(express.static(path.join(__dirname, 'frontend')));
