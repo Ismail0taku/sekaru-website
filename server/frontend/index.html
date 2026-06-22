@@ -701,9 +701,9 @@ async function hClearImage(i) {
 
 // ===== ENTRANCE =====
 // ===== Audio Engine =====
-let AC,_bBuf,_wBuf
+let AC,_bBuf,_wBuf,_rTimer
 function aCtx(){
-  if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();AC.g=AC.createGain();AC.g.gain.value=.5;AC.g.connect(AC.destination)}
+  if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();AC.g=AC.createGain();AC.g.gain.value=.5;AC.g.connect(AC.destination);!function t(){if(AC.state==='running'){clearTimeout(_rTimer);_rTimer=null;return};AC.resume().catch(()=>{_rTimer=setTimeout(t,50)})}()}
   if(AC.state==='suspended')AC.resume()
   return AC
 }
@@ -780,7 +780,7 @@ function sReveal(){
     o.connect(g).connect(AC.g);o.start(AC.currentTime);o.stop(AC.currentTime+2.5)
   })
 }
-document.addEventListener('click',()=>{try{if(AC&&AC.state==='suspended')AC.resume()}catch(e){}},{once:true,passive:true})
+;['click','mousedown','touchstart','pointerdown','keydown'].forEach(evt=>{document.addEventListener(evt,()=>{try{if(AC&&AC.state==='suspended')AC.resume()}catch(e){}},{once:true,passive:true})})
 
 function buildEntrance(){
   const e=$('entrance');if(!e)return;e.innerHTML=''
