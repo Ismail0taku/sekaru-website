@@ -137,22 +137,23 @@ app.post('/api/upload/avatar', auth, upload.single('avatar'), async (req, res) =
 
 app.get('/api/guilds', (req, res) => res.json(all('SELECT * FROM guilds')));
 app.post('/api/guilds', auth, async (req, res) => {
-  const { name, icon, accent, description, wa_link } = req.body;
+  const { name, icon, accent, description, wa_link, image } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
   const id = 'g_' + uuidv4().slice(0, 8);
-  run('INSERT INTO guilds (id,name,icon,accent,description,wa_link) VALUES (?,?,?,?,?,?)',
-    [id, name, icon||'🛡️', accent||'#C2541F', description||'', wa_link||'']);
+  run('INSERT INTO guilds (id,name,icon,accent,description,wa_link,image) VALUES (?,?,?,?,?,?,?)',
+    [id, name, icon||'🛡️', accent||'#C2541F', description||'', wa_link||'', image||'']);
   await saveDBAsync();
   res.json({ id });
 });
 app.put('/api/guilds/:id', auth, async (req, res) => {
-  const { name, icon, accent, description, wa_link } = req.body;
+  const { name, icon, accent, description, wa_link, image } = req.body;
   const sets = []; const binds = [];
   if (name !== undefined) { sets.push('name=?'); binds.push(name); }
   if (icon !== undefined) { sets.push('icon=?'); binds.push(icon); }
   if (accent !== undefined) { sets.push('accent=?'); binds.push(accent); }
   if (description !== undefined) { sets.push('description=?'); binds.push(description); }
   if (wa_link !== undefined) { sets.push('wa_link=?'); binds.push(wa_link); }
+  if (image !== undefined) { sets.push('image=?'); binds.push(image); }
   if (!sets.length) return res.status(400).json({ error: 'No fields' });
   binds.push(req.params.id);
   run(`UPDATE guilds SET ${sets.join(',')} WHERE id=?`, binds);

@@ -92,8 +92,10 @@ function createTables() {
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS guilds (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, icon TEXT DEFAULT '🛡️',
-    accent TEXT DEFAULT '#C2541F', description TEXT DEFAULT '', wa_link TEXT DEFAULT ''
+    accent TEXT DEFAULT '#C2541F', description TEXT DEFAULT '', wa_link TEXT DEFAULT '',
+    image TEXT DEFAULT ''
   )`);
+  try{db.run('ALTER TABLE guilds ADD COLUMN image TEXT DEFAULT \'\'')}catch(e){}
   db.run(`CREATE TABLE IF NOT EXISTS shop_items (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, icon TEXT DEFAULT '🎁',
     description TEXT DEFAULT '', price INTEGER DEFAULT 10
