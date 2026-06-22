@@ -113,6 +113,7 @@ input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,
 .acct-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:28px;max-width:420px;margin:0 auto}
 .acct-card h2{color:var(--gold);text-align:center;margin-bottom:6px}
 .acct-card .sub{text-align:center;color:var(--dim);margin-bottom:20px;font-size:.85rem}
+.acct-split{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}.acct-split>.acct-card{flex:1;min-width:280px;max-width:420px;margin:0}.m-sr-item{padding:8px 0;border-bottom:1px solid var(--line);font-size:.85rem;display:flex;justify-content:space-between;gap:8px}
 .fg{margin-bottom:14px}.fg label{display:block;margin-bottom:4px;font-size:.85rem;color:var(--dim)}
 .fg .err{color:#e74c3c;font-size:.8rem;margin-top:4px}
 .toggle-link{color:var(--gold);cursor:pointer}
@@ -342,11 +343,13 @@ function rAbout(mc){
 // ===== ACCOUNT =====
 function rAccount(mc){
   if(S.member){rProfile(mc);return}
-  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>إنشاء حساب</h2><p class="sub">انضم إلى مملكة SEKARU</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>رقم الهاتف</label><input id="rPh" placeholder="رقم واتساب"></div><div class="fg"><label>النقابة</label><select id="rG">${S.guilds.map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('')}</select></div><button class="btn-primary" onclick="reg()">تسجيل وانضمام</button><p style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--dim)">عندك حساب؟ <span class="toggle-link" onclick="showLogin()">سجّل دخول</span></p></div></div>`
+  mc.innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card"><h2>إنشاء حساب</h2><p class="sub">انضم إلى مملكة SEKARU</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>رقم الهاتف</label><input id="rPh" placeholder="رقم واتساب"></div><div class="fg"><label>النقابة</label><select id="rG">${S.guilds.map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('')}</select></div><button class="btn-primary" onclick="reg()">تسجيل وانضمام</button><p style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--dim)">عندك حساب؟ <span class="toggle-link" onclick="showLogin()">سجّل دخول</span></p></div><div class="acct-card"><h2>🔍 بحث الأعضاء</h2><input id="mS" placeholder="لقب أو رقم هاتف" oninput="rMemberSearch(this.value)" style="width:100%;font-size:.85rem;padding:8px 10px;margin-bottom:10px"><div id="mSR"></div></div></div></div>`
+  if(S.members.length)rMemberSearch('')
 }
 
 function showLogin(){
-  $('main').innerHTML=`<div class="sec"><div class="acct-card"><h2>تسجيل دخول</h2><p class="sub">مرحباً بعودتك</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="lN" placeholder="لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="lP" placeholder="كلمة السر"></div><button class="btn-primary" onclick="login()">دخول</button><p style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--dim)">ما عندك حساب؟ <span class="toggle-link" onclick="go('account')">سجّل الآن</span></p></div></div>`
+  $('main').innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card"><h2>تسجيل دخول</h2><p class="sub">مرحباً بعودتك</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="lN" placeholder="لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="lP" placeholder="كلمة السر"></div><button class="btn-primary" onclick="login()">دخول</button><p style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--dim)">ما عندك حساب؟ <span class="toggle-link" onclick="go('account')">سجّل الآن</span></p></div><div class="acct-card"><h2>🔍 بحث الأعضاء</h2><input id="mS" placeholder="لقب أو رقم هاتف" oninput="rMemberSearch(this.value)" style="width:100%;font-size:.85rem;padding:8px 10px;margin-bottom:10px"><div id="mSR"></div></div></div></div>`
+  if(S.members.length)rMemberSearch('')
 }
 
 async function reg(){
@@ -366,11 +369,21 @@ async function login(){
   S.member=m;sv(K.s,m);toast('أهلاً بعودتك يا '+n+'!');go('home')
 }
 
+function rMemberSearch(q){
+  const c=$('mSR');if(!c)return
+  const m=S.members
+  if(!q){c.innerHTML=m.length===0?'<p style="color:var(--dim);font-size:.85rem">لا يوجد أعضاء</p>':m.slice(0,30).map(mm=>{const g=S.guilds.find(x=>x.id===mm.guildId);return'<div class="m-sr-item"><span>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+'</span><span style="color:var(--dim);font-size:.78rem">📱'+mm.phone+(g?' <span style="color:var(--gold-dim)">'+g.icon+g.name+'</span>':'')+' 🪙'+(mm.coins||0).toLocaleString('ar')+'</span></div>'}).join('');return}
+  const flt=m.filter(mm=>mm.nickname.toLowerCase().includes(q.toLowerCase())||(mm.phone||'').includes(q))
+  if(!flt.length){c.innerHTML='<p style="color:var(--dim);font-size:.85rem">لا توجد نتائج</p>';return}
+  c.innerHTML=flt.map(mm=>{const g=S.guilds.find(x=>x.id===mm.guildId);return'<div class="m-sr-item"><span>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+'</span><span style="color:var(--dim);font-size:.78rem">📱'+mm.phone+(g?' <span style="color:var(--gold-dim)">'+g.icon+g.name+'</span>':'')+' 🪙'+(mm.coins||0).toLocaleString('ar')+'</span></div>'}).join('')
+}
+
 // ===== PROFILE =====
 function rProfile(mc){
   const m=S.member;if(!m){go('account');return}
   const g=S.guilds.find(x=>x.id===m.guildId);
-  const rnk=getRank(m.rankId);mc.innerHTML=`<div class="sec"><div class="acct-card"><div style="text-align:center"><div style="width:64px;height:64px;border-radius:50%;background:var(--ember);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:var(--text);margin:0 auto 10px">${m.nickname.charAt(0)}</div><h2 style="margin-bottom:4px">${m.nickname}</h2><p style="color:var(--gold-dim);font-size:.8rem;margin-bottom:4px;font-weight:600">${rnk?rnk.icon+' '+rnk.name:'عضو'}</p><p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone}</p><p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p></div><button class="btn-outline btn-sm" style="width:100%;justify-content:center" onclick="ghome()">العودة للرئيسية</button></div></div>`
+  const rnk=getRank(m.rankId);mc.innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card"><div style="text-align:center"><div style="width:64px;height:64px;border-radius:50%;background:var(--ember);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:var(--text);margin:0 auto 10px">${m.nickname.charAt(0)}</div><h2 style="margin-bottom:4px">${m.nickname}</h2><p style="color:var(--gold-dim);font-size:.8rem;margin-bottom:4px;font-weight:600">${rnk?rnk.icon+' '+rnk.name:'عضو'}</p><p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone}</p><p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p></div><button class="btn-outline btn-sm" style="width:100%;justify-content:center" onclick="ghome()">العودة للرئيسية</button></div><div class="acct-card"><h2>🔍 بحث الأعضاء</h2><input id="mS" placeholder="لقب أو رقم هاتف" oninput="rMemberSearch(this.value)" style="width:100%;font-size:.85rem;padding:8px 10px;margin-bottom:10px"><div id="mSR"></div></div></div></div>`
+  if(S.members.length)rMemberSearch('')
 }
 
 // ===== SHOP =====

@@ -114,6 +114,7 @@ input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,
 .acct-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:28px;max-width:420px;margin:0 auto}
 .acct-card h2{color:var(--gold);text-align:center;margin-bottom:6px}
 .acct-card .sub{text-align:center;color:var(--dim);margin-bottom:20px;font-size:.85rem}
+.acct-split{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}.acct-split>.acct-card{flex:1;min-width:280px;max-width:420px;margin:0}.m-sr-item{padding:8px 0;border-bottom:1px solid var(--line);font-size:.85rem;display:flex;justify-content:space-between;gap:8px}
 .fg{margin-bottom:14px}.fg label{display:block;margin-bottom:4px;font-size:.85rem;color:var(--dim)}
 .fg .err{color:#e74c3c;font-size:.8rem;margin-top:4px}
 .toggle-link{color:var(--gold);cursor:pointer}
@@ -198,11 +199,11 @@ footer{text-align:center;padding:24px 20px;color:var(--dim);font-size:.82rem;bor
 window.onerror=function(m,u,l,c,e){const d=document.createElement('div');d.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#1C1308;color:#E8714A;padding:20px;text-align:center;font-size:1rem;border-top:2px solid #E8714A;max-height:200px;overflow:auto';d.innerHTML='<strong>⚠️ خطأ:</strong> '+m+(e&&e.stack?'<br><span style="font-size:.75rem;color:var(--dim);direction:ltr;display:block;margin-top:8px">'+e.stack.slice(0,500)+'</span>':'');document.body.appendChild(d);console.error('SEKARU:',m,e)};
 // ===== API =====
 const API = window.location.origin + '/api'
-function getToken(){return sessionStorage.getItem('sk_token')||''}
-function getMaster(){return sessionStorage.getItem('sk_master')==='1'}
-function setToken(t){sessionStorage.setItem('sk_token',t)}
-function setMaster(v){sessionStorage.setItem('sk_master',v?'1':'0')}
-function clearToken(){sessionStorage.removeItem('sk_token');sessionStorage.removeItem('sk_master')}
+function getToken(){try{return localStorage.getItem('sk_token')||''}catch{return ''}}
+function getMaster(){try{return localStorage.getItem('sk_master')==='1'}catch{return false}}
+function setToken(t){try{localStorage.setItem('sk_token',t)}catch{}}
+function setMaster(v){try{localStorage.setItem('sk_master',v?'1':'0')}catch{}}
+function clearToken(){try{localStorage.removeItem('sk_token');localStorage.removeItem('sk_master')}catch{}}
 async function api(path, opts){
   const h={'Content-Type':'application/json'};const t=getToken()
   if(t)h['Authorization']='Bearer '+t
@@ -285,7 +286,7 @@ async function loadAll(){
       try{
         const me=await api('/auth/me')
         S.member=me
-      }catch{S.member=null;clearToken()}
+      }catch{S.member=null}
     }else if(S.master){S.member=null}
   }catch(e){toast('⚠️ فشل تحميل البيانات: '+e.message)}
   S_loaded=true
@@ -381,7 +382,8 @@ function rAbout(mc){
 // ===== ACCOUNT =====
 function rAccount(mc){
   if(S.member){rProfile(mc);return}
-  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>حسابي</h2><p class="sub">انضم أو سجّل دخول</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>النقابة</label><select id="rG"><option value="">اختر نقابتك</option>${S.guilds.map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('')}</select></div><div class="fg"><label>رقم واتساب</label><input id="rPh" placeholder="رقم واتساب"></div><button class="btn-outline" onclick="reg()" style="width:100%">تسجيل</button><hr style="border-color:var(--panel);margin:14px 0"><div class="fg"><input id="lN" placeholder="لقبك"><input type="password" id="lP" placeholder="كلمة السر" style="margin-top:8px"></div><button class="btn-gold" onclick="login()" style="width:100%;justify-content:center">دخول</button></div></div>`
+  mc.innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card"><h2>حسابي</h2><p class="sub">انضم أو سجّل دخول</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>النقابة</label><select id="rG"><option value="">اختر نقابتك</option>${S.guilds.map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('')}</select></div><div class="fg"><label>رقم واتساب</label><input id="rPh" placeholder="رقم واتساب"></div><button class="btn-outline" onclick="reg()" style="width:100%">تسجيل</button><hr style="border-color:var(--panel);margin:14px 0"><div class="fg"><input id="lN" placeholder="لقبك"><input type="password" id="lP" placeholder="كلمة السر" style="margin-top:8px"></div><button class="btn-gold" onclick="login()" style="width:100%;justify-content:center">دخول</button></div><div class="acct-card"><h2>🔍 بحث الأعضاء</h2><input id="mS" placeholder="لقب أو رقم هاتف" oninput="rMemberSearch(this.value)" style="width:100%;font-size:.85rem;padding:8px 10px;margin-bottom:10px"><div id="mSR"></div></div></div></div>`
+  if(S.members.length)rMemberSearch('')
 }
 
 async function reg(){
@@ -402,6 +404,15 @@ async function login(){
   }catch(err){msg.innerHTML='<div class="err">'+err.message+'</div>'}
 }
 
+function rMemberSearch(q){
+  const c=$('mSR');if(!c)return
+  const m=S.members
+  if(!q){c.innerHTML=m.length===0?'<p style="color:var(--dim);font-size:.85rem">لا يوجد أعضاء</p>':m.slice(0,30).map(mm=>{const g=S.guilds.find(x=>x.id===mm.guild_id);return'<div class="m-sr-item"><span>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+'</span><span style="color:var(--dim);font-size:.78rem">📱'+mm.phone+(g?' <span style="color:var(--gold-dim)">'+g.icon+g.name+'</span>':'')+' 🪙'+(mm.coins||0).toLocaleString('ar')+'</span></div>'}).join('');return}
+  const flt=m.filter(mm=>mm.nickname.toLowerCase().includes(q.toLowerCase())||(mm.phone||'').includes(q))
+  if(!flt.length){c.innerHTML='<p style="color:var(--dim);font-size:.85rem">لا توجد نتائج</p>';return}
+  c.innerHTML=flt.map(mm=>{const g=S.guilds.find(x=>x.id===mm.guild_id);return'<div class="m-sr-item"><span>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+'</span><span style="color:var(--dim);font-size:.78rem">📱'+mm.phone+(g?' <span style="color:var(--gold-dim)">'+g.icon+g.name+'</span>':'')+' 🪙'+(mm.coins||0).toLocaleString('ar')+'</span></div>'}).join('')
+}
+
 // ===== PROFILE =====
 function rProfile(mc){
   const m=S.member;if(!m){go('account');return}
@@ -418,7 +429,8 @@ function rProfile(mc){
     <p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone||'غير محدد'}</p>
     <p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
     <button class="btn-outline btn-sm" style="width:100%;justify-content:center" onclick="ghome()">العودة للرئيسية</button>
-  </div></div></div>`
+  </div></div><div class="acct-card"><h2>🔍 بحث الأعضاء</h2><input id="mS" placeholder="لقب أو رقم هاتف" oninput="rMemberSearch(this.value)" style="width:100%;font-size:.85rem;padding:8px 10px;margin-bottom:10px"><div id="mSR"></div></div></div></div>`
+  if(S.members.length)rMemberSearch('')
 }
 
 async function uploadAvatar(input){

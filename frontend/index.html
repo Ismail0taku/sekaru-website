@@ -114,6 +114,7 @@ input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,
 .acct-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:28px;max-width:420px;margin:0 auto}
 .acct-card h2{color:var(--gold);text-align:center;margin-bottom:6px}
 .acct-card .sub{text-align:center;color:var(--dim);margin-bottom:20px;font-size:.85rem}
+.acct-split{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}.acct-split>.acct-card{flex:1;min-width:280px;max-width:420px;margin:0}.m-sr-item{padding:8px 0;border-bottom:1px solid var(--line);font-size:.85rem;display:flex;justify-content:space-between;gap:8px}
 .fg{margin-bottom:14px}.fg label{display:block;margin-bottom:4px;font-size:.85rem;color:var(--dim)}
 .fg .err{color:#e74c3c;font-size:.8rem;margin-top:4px}
 .toggle-link{color:var(--gold);cursor:pointer}
@@ -290,7 +291,7 @@ async function loadAll(){
       try{
         const me=await api('/auth/me')
         S.member=me
-      }catch{S.member=null;clearToken()}
+      }catch{S.member=null}
     }else if(S.master){S.member=null}
   }catch(e){
     // Fallback to localStorage cache
@@ -398,7 +399,8 @@ function rAbout(mc){
 // ===== ACCOUNT =====
 function rAccount(mc){
   if(S.member){rProfile(mc);return}
-  mc.innerHTML=`<div class="sec"><div class="acct-card"><h2>حسابي</h2><p class="sub">انضم أو سجّل دخول</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>النقابة</label><select id="rG"><option value="">اختر نقابتك</option>${S.guilds.map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('')}</select></div><div class="fg"><label>رقم واتساب</label><input id="rPh" placeholder="رقم واتساب"></div><button class="btn-outline" onclick="reg()" style="width:100%">تسجيل</button><hr style="border-color:var(--panel);margin:14px 0"><div class="fg"><input id="lN" placeholder="لقبك"><input type="password" id="lP" placeholder="كلمة السر" style="margin-top:8px"></div><button class="btn-gold" onclick="login()" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F4C95D,#d9a83e)!important">دخول</button></div></div>`
+  mc.innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card"><h2>حسابي</h2><p class="sub">انضم أو سجّل دخول</p><div id="aMsg"></div><div class="fg"><label>اللقب</label><input id="rN" placeholder="اختر لقبك"></div><div class="fg"><label>كلمة السر</label><input type="password" id="rP" placeholder="كلمة سر"></div><div class="fg"><label>النقابة</label><select id="rG"><option value="">اختر نقابتك</option>${S.guilds.map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('')}</select></div><div class="fg"><label>رقم واتساب</label><input id="rPh" placeholder="رقم واتساب"></div><button class="btn-outline" onclick="reg()" style="width:100%">تسجيل</button><hr style="border-color:var(--panel);margin:14px 0"><div class="fg"><input id="lN" placeholder="لقبك"><input type="password" id="lP" placeholder="كلمة السر" style="margin-top:8px"></div><button class="btn-gold" onclick="login()" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F4C95D,#d9a83e)!important">دخول</button></div><div class="acct-card"><h2>🔍 بحث الأعضاء</h2><input id="mS" placeholder="لقب أو رقم هاتف" oninput="rMemberSearch(this.value)" style="width:100%;font-size:.85rem;padding:8px 10px;margin-bottom:10px"><div id="mSR"></div></div></div></div>`
+  if(S.members.length)rMemberSearch('')
 }
 
 async function reg(){
@@ -417,6 +419,15 @@ async function login(){
     const r=await api('/auth/login',{method:'POST',body:JSON.stringify({nickname:n,password:p})})
     setToken(r.token);S.member=r.user;toast('أهلاً بعودتك يا '+r.user.nickname+'!');go('home')
   }catch(err){msg.innerHTML='<div class="err">'+err.message+'</div>'}
+}
+
+function rMemberSearch(q){
+  const c=$('mSR');if(!c)return
+  const m=S.members
+  if(!q){c.innerHTML=m.length===0?'<p style="color:var(--dim);font-size:.85rem">لا يوجد أعضاء</p>':m.slice(0,30).map(mm=>{const g=S.guilds.find(x=>x.id===mm.guild_id);return'<div class="m-sr-item"><span>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+'</span><span style="color:var(--dim);font-size:.78rem">📱'+mm.phone+(g?' <span style="color:var(--gold-dim)">'+g.icon+g.name+'</span>':'')+' 🪙'+(mm.coins||0).toLocaleString('ar')+'</span></div>'}).join('');return}
+  const flt=m.filter(mm=>mm.nickname.toLowerCase().includes(q.toLowerCase())||(mm.phone||'').includes(q))
+  if(!flt.length){c.innerHTML='<p style="color:var(--dim);font-size:.85rem">لا توجد نتائج</p>';return}
+  c.innerHTML=flt.map(mm=>{const g=S.guilds.find(x=>x.id===mm.guild_id);return'<div class="m-sr-item"><span>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+'</span><span style="color:var(--dim);font-size:.78rem">📱'+mm.phone+(g?' <span style="color:var(--gold-dim)">'+g.icon+g.name+'</span>':'')+' 🪙'+(mm.coins||0).toLocaleString('ar')+'</span></div>'}).join('')
 }
 
 function hasItem(m,id){return m&&m.inventory&&m.inventory.some(i=>i.id===id)}
@@ -447,7 +458,8 @@ function rProfile(mc){
     <div class="fg"><input type="password" id="cpNew" placeholder="كلمة السر الجديدة" style="font-size:.85rem;padding:8px 10px"></div>
     <button class="btn-gold btn-sm" style="width:100%;justify-content:center" onclick="changePw()">🔑 تغيير كلمة السر</button>
     <button class="btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="ghome()">العودة للرئيسية</button>
-  </div></div></div>`
+  </div></div><div class="acct-card"><h2>🔍 بحث الأعضاء</h2><input id="mS" placeholder="لقب أو رقم هاتف" oninput="rMemberSearch(this.value)" style="width:100%;font-size:.85rem;padding:8px 10px;margin-bottom:10px"><div id="mSR"></div></div></div></div>`
+  if(S.members.length)rMemberSearch('')
 }
 
 async function uploadAvatar(input){
