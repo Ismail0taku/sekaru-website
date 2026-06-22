@@ -458,18 +458,56 @@ function rProfile(mc){
   const g=S.guilds.find(x=>x.id===m.guild_id)
   const rnk=S.ranks.find(x=>x.id===m.rank_id)
   const avatarUrl=m.avatar?(m.avatar.startsWith('http')||m.avatar.startsWith('data:')?m.avatar:window.location.origin+m.avatar):''
-  mc.innerHTML=`<div class="sec"><div class="acct-card"><div style="text-align:center">
-    <div class="avatar-upload">
-      ${avatarUrl?'<img src="'+avatarUrl+'" class="avatar-img">':'<div class="avatar-placeholder">'+m.nickname.charAt(0)+'</div>'}
-      <label class="btn-outline btn-sm" style="cursor:pointer;display:inline-flex">📷 تغيير الصورة<input type="file" accept="image/*" onchange="uploadAvatar(this)" style="display:none"></label>
+  mc.innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card" style="margin:0">
+    <div style="text-align:center">
+      <div class="avatar-upload">
+        ${avatarUrl?'<img src="'+avatarUrl+'" class="avatar-img">':'<div class="avatar-placeholder">'+m.nickname.charAt(0)+'</div>'}
+        <label class="btn-outline btn-sm" style="cursor:pointer;display:inline-flex">📷 تغيير الصورة<input type="file" accept="image/*" onchange="uploadAvatar(this)" style="display:none"></label>
+      </div>
+      <h2 style="margin-bottom:4px">${m.nickname}</h2>
+      <p style="color:var(--gold-dim);font-size:.8rem;margin-bottom:4px;font-weight:600">${rnk?rnk.icon+' '+rnk.name:'عضو'}</p>
+      <p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone||'غير محدد'}</p>
+      <p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
+      <button class="btn-outline btn-sm" style="width:100%;justify-content:center" onclick="ghome()">العودة للرئيسية</button>
     </div>
-    <h2 style="margin-bottom:4px">${m.nickname}</h2>
-    <p style="color:var(--gold-dim);font-size:.8rem;margin-bottom:4px;font-weight:600">${rnk?rnk.icon+' '+rnk.name:'عضو'}</p>
-    <p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone||'غير محدد'}</p>
-    <p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
-    <button class="btn-outline btn-sm" style="width:100%;justify-content:center" onclick="ghome()">العودة للرئيسية</button>
-  </div></div><div class="acct-card"><h2>🔍 بحث الأعضاء</h2><input id="mS" placeholder="لقب أو رقم هاتف" oninput="rMemberSearch(this.value)" style="width:100%;font-size:.85rem;padding:8px 10px;margin-bottom:10px"><div id="mSR"></div></div></div></div>`
+  </div><div class="acct-card" style="margin:0">
+    <h2>💳 تحويل بنكي</h2>
+    <p class="sub" style="margin-bottom:12px">حوّل عملات لعضو آخر</p>
+    <div style="margin-bottom:10px"><input id="tfSearch" placeholder="🔍 اكتب لقب العضو" oninput="rTransferSearch(this.value)" style="font-size:.85rem;padding:8px 10px"><div id="tfResults" style="max-height:150px;overflow-y:auto;margin-top:4px"></div></div>
+    <div class="fg"><label>المستلم</label><select id="tfRecipient" style="font-size:.85rem;padding:8px 10px"><option value="">اختر العضو</option>${S.members.filter(mm=>mm.id!==m.id).map(mm=>'<option value="'+mm.id+'">'+mm.nickname+'</option>').join('')}</select></div>
+    <div class="fg"><label>المبلغ 🪙</label><input id="tfAmount" type="number" value="10" min="1" style="font-size:.85rem;padding:8px 10px"></div>
+    <button class="btn-gold btn-sm" style="width:100%;justify-content:center" onclick="transferCoins()">💰 تحويل</button>
+    <p style="color:var(--dim);font-size:.7rem;text-align:center;margin-top:8px">رصيدك: 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
+  </div></div><div class="acct-card"><h2>🔍 بحث الأعضاء</h2><input id="mS" placeholder="لقب أو رقم هاتف" oninput="rMemberSearch(this.value)" style="width:100%;font-size:.85rem;padding:8px 10px;margin-bottom:10px"><div id="mSR"></div></div></div>`
   if(S.members.length)rMemberSearch('')
+}
+
+async function transferCoins(){
+  const m=S.member;if(!m)return
+  const rid=$('tfRecipient')?.value,amt=parseInt($('tfAmount')?.value)
+  if(!rid||!amt||amt<=0){toast('⚠️ اختر العضو وأدخل مبلغ صحيح');return}
+  if(amt>(m.coins||0)){toast('⚠️ رصيد غير كاف');return}
+  try{
+    const r=await api('/transfer',{method:'POST',body:JSON.stringify({recipientId:rid,amount:amt})})
+    S.member.coins=r.senderCoins
+    toast('✅ تم تحويل 🪙'+amt.toLocaleString('ar'))
+    rProfile($('main'))
+  }catch(e){toast('⚠️ '+e.message)}
+}
+
+function rTransferSearch(q){
+  const d=$('tfResults');const sel=$('tfRecipient')
+  if(!d||!sel)return
+  if(!q||!S.members.length){d.innerHTML='';d.style.display='none';return}
+  const flt=S.members.filter(mm=>mm.id!==S.member?.id&&mm.nickname.toLowerCase().includes(q.toLowerCase())).slice(0,10)
+  if(!flt.length){d.innerHTML='<p style="color:var(--dim);font-size:.75rem;padding:4px">لا توجد نتائج</p>';d.style.display='block';return}
+  d.style.display='block'
+  d.innerHTML=flt.map(mm=>'<div style="padding:6px 8px;cursor:pointer;border-radius:4px;font-size:.82rem;border-bottom:1px solid var(--line)" onmouseenter="this.style.background=\'var(--panel-light)\'" onmouseleave="this.style.background=\'\'" onclick="selTransfer(\''+mm.id+'\',\''+mm.nickname+'\')">'+mm.nickname+' <span style="color:var(--dim);font-size:.75rem">🪙 '+(mm.coins||0).toLocaleString('ar')+'</span></div>').join('')
+}
+function selTransfer(id,nick){
+  const sel=$('tfRecipient');if(sel){sel.value=id}
+  const d=$('tfResults');if(d){d.innerHTML='';d.style.display='none'}
+  const inp=$('tfSearch');if(inp)inp.value=nick
 }
 
 async function uploadAvatar(input){

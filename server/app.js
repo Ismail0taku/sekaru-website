@@ -256,6 +256,22 @@ app.post('/api/guilds/:id/withdraw', auth, async (req, res) => {
   res.json({ ok: true, userCoins: (one('SELECT coins FROM users WHERE id=?', [req.user.id])).coins, bank: (guild.bank||0) - amount });
 });
 
+// Personal transfer between members
+app.post('/api/transfer', auth, async (req, res) => {
+  const { recipientId, amount } = req.body;
+  if (!recipientId || !amount || amount <= 0) return res.status(400).json({ error: 'Invalid request' });
+  if (recipientId === req.user.id) return res.status(400).json({ error: 'لا يمكن التحويل لنفسك' });
+  const sender = one('SELECT coins FROM users WHERE id=?', [req.user.id]);
+  if (!sender) return res.status(404).json({ error: 'User not found' });
+  if (sender.coins < amount) return res.status(400).json({ error: 'رصيد غير كاف' });
+  const recipient = one('SELECT id FROM users WHERE id=?', [recipientId]);
+  if (!recipient) return res.status(404).json({ error: 'المستلم غير موجود' });
+  run('UPDATE users SET coins=coins-? WHERE id=?', [amount, req.user.id]);
+  run('UPDATE users SET coins=coins+? WHERE id=?', [amount, recipientId]);
+  await saveDBAsync();
+  res.json({ ok: true, senderCoins: sender.coins - amount });
+});
+
 app.get('/api/hierarchy', (req, res) => res.json(all('SELECT * FROM hierarchy ORDER BY sort_order ASC')));
 app.post('/api/hierarchy', auth, async (req, res) => {
   const { title, name, description, icon, color, image } = req.body;
