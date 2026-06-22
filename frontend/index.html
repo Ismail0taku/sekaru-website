@@ -115,6 +115,7 @@ input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,
 .acct-card h2{color:var(--gold);text-align:center;margin-bottom:6px}
 .acct-card .sub{text-align:center;color:var(--dim);margin-bottom:20px;font-size:.85rem}
 .acct-split{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}.acct-split>.acct-card{flex:1;min-width:280px;max-width:420px;margin:0}.m-sr-item{padding:8px 0;border-bottom:1px solid var(--line);font-size:.85rem;display:flex;justify-content:space-between;gap:8px}
+.ns-wrap{position:relative;display:inline-block;margin:0 6px}.ns-drop{position:absolute;top:100%;right:0;min-width:260px;max-height:300px;overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px;z-index:100;display:none}.ns-drop.show{display:block}.ns-drop .m-sr-item{cursor:pointer}.ns-drop .m-sr-item:hover{background:var(--panel-light)}
 .fg{margin-bottom:14px}.fg label{display:block;margin-bottom:4px;font-size:.85rem;color:var(--dim)}
 .fg .err{color:#e74c3c;font-size:.8rem;margin-top:4px}
 .toggle-link{color:var(--gold);cursor:pointer}
@@ -348,10 +349,21 @@ function rNav(){
   const mn=$('navMobile');if(mn){mn.innerHTML='';items.forEach(({k,l})=>{const b=document.createElement('button');b.textContent=l;if(S.page===k)b.className='active';b.onclick=()=>{go(k);if(navOpen)toggleNav()};mn.appendChild(b)})}
   const nu=$('navUser');nu.innerHTML=''
   if(editMode)nu.innerHTML='<span class="edit-badge">✏️ تعديل</span> '
+  nu.innerHTML+='<div class="ns-wrap"><input id="nsI" placeholder="🔍 بحث" oninput="rNavSearch(this.value)" style="font-size:.8rem;padding:5px 8px;border-radius:6px;background:var(--panel-light);border:1px solid var(--line);color:var(--text);width:80px;transition:width .2s" onfocus="this.style.width='120px'" onblur="this.style.width='80px'"><div id="nsR" class="ns-drop"></div></div>'
   if(S.member){const inv=S.member.inventory||[];const b=[inv.some(i=>i.id==='sh1')?'🏅':'',inv.some(i=>i.id==='sh2')?'👑':'',inv.some(i=>i.id==='sh5')?'⭐':''].filter(Boolean).join(' ');nu.innerHTML+='<span>👤 '+S.member.nickname+(b?' '+b:'')+'</span><span style="color:var(--gold);font-weight:700">🪙 '+(S.member.coins||0).toLocaleString('ar')+'</span><button onclick="logout()" style="background:var(--panel-light);color:var(--ember);padding:4px 10px;font-size:.8rem;border-radius:6px">خروج</button>'}
   else nu.innerHTML+='<button onclick="go(\'account\')" style="background:linear-gradient(135deg,#F4C95D,#d9a83e);color:#1A1304;font-size:.85rem;font-weight:800;padding:6px 16px;border-radius:8px">🔑 دخول</button>'
 }
 function logout(){clearToken();S.member=null;aAuth=false;go('home')}
+
+function rNavSearch(q){
+  const d=$('nsR');if(!d)return
+  if(!q||!S.members.length){d.classList.remove('show');return}
+  const flt=S.members.filter(mm=>mm.nickname.toLowerCase().includes(q.toLowerCase())||(mm.phone||'').includes(q)).slice(0,15)
+  if(!flt.length){d.classList.remove('show');return}
+  d.innerHTML=flt.map(mm=>{const g=S.guilds.find(x=>x.id===mm.guild_id);return'<div class="m-sr-item" onclick="go(\'bank\');document.getElementById(\'nsI\').value=\'\';document.getElementById(\'nsR\').classList.remove(\'show\')"><span>'+(S.founderId===mm.id?'👑 ':'')+mm.nickname+'</span><span style="color:var(--dim);font-size:.78rem">📱'+mm.phone+(g?' <span style="color:var(--gold-dim)">'+g.icon+g.name+'</span>':'')+' 🪙'+(mm.coins||0).toLocaleString('ar')+'</span></div>'}).join('')
+  d.classList.add('show')
+}
+document.addEventListener('click',function(e){const d=$('nsR');if(d&&!e.target.closest('.ns-wrap'))d.classList.remove('show')})
 
 // ===== HOME =====
 function rHome(mc){
