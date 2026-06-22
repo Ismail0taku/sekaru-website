@@ -349,7 +349,7 @@ function rNav(){
   const mn=$('navMobile');if(mn){mn.innerHTML='';items.forEach(({k,l})=>{const b=document.createElement('button');b.textContent=l;if(S.page===k)b.className='active';b.onclick=()=>{go(k);if(navOpen)toggleNav()};mn.appendChild(b)})}
   const nu=$('navUser');nu.innerHTML=''
   if(editMode)nu.innerHTML='<span class="edit-badge">✏️ تعديل</span> '
-  nu.innerHTML+='<div class="ns-wrap"><input id="nsI" placeholder="🔍 بحث" oninput="rNavSearch(this.value)" style="font-size:.8rem;padding:5px 8px;border-radius:6px;background:var(--panel-light);border:1px solid var(--line);color:var(--text);width:80px;transition:width .2s" onfocus="this.style.width='120px'" onblur="this.style.width='80px'"><div id="nsR" class="ns-drop"></div></div>'
+  nu.innerHTML+='<div class="ns-wrap"><input id="nsI" placeholder="🔍 بحث" oninput="rNavSearch(this.value)" onfocus="nsExpand(this)" onblur="nsShrink(this)" style="font-size:.8rem;padding:5px 8px;border-radius:6px;background:var(--panel-light);border:1px solid var(--line);color:var(--text);width:80px;transition:width .2s"><div id="nsR" class="ns-drop"></div></div>'
   if(S.member){const inv=S.member.inventory||[];const b=[inv.some(i=>i.id==='sh1')?'🏅':'',inv.some(i=>i.id==='sh2')?'👑':'',inv.some(i=>i.id==='sh5')?'⭐':''].filter(Boolean).join(' ');nu.innerHTML+='<span>👤 '+S.member.nickname+(b?' '+b:'')+'</span><span style="color:var(--gold);font-weight:700">🪙 '+(S.member.coins||0).toLocaleString('ar')+'</span><button onclick="logout()" style="background:var(--panel-light);color:var(--ember);padding:4px 10px;font-size:.8rem;border-radius:6px">خروج</button>'}
   else nu.innerHTML+='<button onclick="go(\'account\')" style="background:linear-gradient(135deg,#F4C95D,#d9a83e);color:#1A1304;font-size:.85rem;font-weight:800;padding:6px 16px;border-radius:8px">🔑 دخول</button>'
 }
@@ -364,6 +364,8 @@ function rNavSearch(q){
   d.classList.add('show')
 }
 document.addEventListener('click',function(e){const d=$('nsR');if(d&&!e.target.closest('.ns-wrap'))d.classList.remove('show')})
+function nsExpand(el){el.style.width='120px'}
+function nsShrink(el){el.style.width='80px'}
 
 // ===== HOME =====
 function rHome(mc){

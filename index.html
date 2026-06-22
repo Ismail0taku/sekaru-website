@@ -293,7 +293,7 @@ function rNav(){
   // User
   const nu=$('navUser');nu.innerHTML='';
   if(editMode)nu.innerHTML='<span class="edit-badge">✏️ تعديل</span> ';
-  nu.innerHTML+='<div class="ns-wrap"><input id="nsI" placeholder="🔍 بحث" oninput="rNavSearch(this.value)" style="font-size:.8rem;padding:5px 8px;border-radius:6px;background:var(--panel-light);border:1px solid var(--line);color:var(--text);width:80px;transition:width .2s" onfocus="this.style.width=\'120px\'" onblur="this.style.width=\'80px\'"><div id="nsR" class="ns-drop"></div></div>';
+  nu.innerHTML+='<div class="ns-wrap"><input id="nsI" placeholder="🔍 بحث" oninput="rNavSearch(this.value)" onfocus="nsExpand(this)" onblur="nsShrink(this)" style="font-size:.8rem;padding:5px 8px;border-radius:6px;background:var(--panel-light);border:1px solid var(--line);color:var(--text);width:80px;transition:width .2s"><div id="nsR" class="ns-drop"></div></div>';
   if(S.member)nu.innerHTML+='<span>👤 '+S.member.nickname+'</span><span style="color:var(--gold);font-weight:700">🪙 '+(S.member.coins||0).toLocaleString('ar')+'</span><button onclick="logout()" style="background:var(--panel-light);color:var(--ember);padding:4px 10px;font-size:.8rem;border-radius:6px">خروج</button>';
   else nu.innerHTML+='<button onclick="go(\'account\')" style="color:var(--gold);font-size:.85rem">🔑 دخول</button>';
 }
@@ -308,6 +308,8 @@ function rNavSearch(q){
   d.classList.add('show')
 }
 document.addEventListener('click',function(e){const d=$('nsR');if(d&&!e.target.closest('.ns-wrap'))d.classList.remove('show')})
+function nsExpand(el){el.style.width='120px'}
+function nsShrink(el){el.style.width='80px'}
 
 // ===== HOME =====
 function rHome(mc){
