@@ -40,8 +40,9 @@ app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISO
 
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { nickname, password, phone } = req.body;
+    const { nickname, password, phone, guildId } = req.body;
     if (!nickname || !password || !phone) return res.status(400).json({ error: 'اللقب وكلمة السر ورقم الواتساب مطلوبون' });
+    if (!guildId) return res.status(400).json({ error: 'اختر النقابة' });
     if (password.length < 4) return res.status(400).json({ error: 'كلمة السر قصيرة' });
     const existing = one('SELECT id FROM users WHERE nickname=?', [nickname]);
     if (existing) return res.status(409).json({ error: 'اللقب مستخدم مسبقاً' });
@@ -49,10 +50,10 @@ app.post('/api/auth/register', async (req, res) => {
     const id = 'u_' + uuidv4().slice(0, 8);
     const dummyEmail = nickname.replace(/\s+/g,'_').toLowerCase() + '_' + id.slice(-4) + '@sekaru.local';
     run('INSERT INTO users (id,email,nickname,password_hash,phone,guild_id,rank_id) VALUES (?,?,?,?,?,?,?)',
-      [id, dummyEmail, nickname, hash, phone, '', 'r_member']);
+      [id, dummyEmail, nickname, hash, phone, guildId, 'r_member']);
     await saveDBAsync();
     const token = jwt.sign({ id, nickname }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id, nickname, phone: phone || '', guildId: '', coins: 100, inventory: [], rankId: 'r_member', avatar: '' } });
+    res.json({ token, user: { id, nickname, phone: phone || '', guild_id: guildId, coins: 100, inventory: [], rank_id: 'r_member', avatar: '', profile_bg: '', created_at: new Date().toISOString() } });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -142,6 +143,15 @@ app.put('/api/profile/background', auth, async (req, res) => {
   run("UPDATE users SET profile_bg='' WHERE id=?", [req.user.id]);
   await saveDBAsync();
   res.json({ ok: true });
+});
+app.put('/api/profile/guild', auth, async (req, res) => {
+  const { guildId } = req.body;
+  if (!guildId) return res.status(400).json({ error: 'Guild ID required' });
+  const guild = one('SELECT id FROM guilds WHERE id=?', [guildId]);
+  if (!guild) return res.status(404).json({ error: 'Guild not found' });
+  run('UPDATE users SET guild_id=? WHERE id=?', [guildId, req.user.id]);
+  await saveDBAsync();
+  res.json({ ok: true, guild_id: guildId });
 });
 
 app.get('/api/guilds', (req, res) => res.json(all('SELECT * FROM guilds')));

@@ -430,7 +430,7 @@ async function reg(){
   if(!n||!p||!g||!ph){msg.innerHTML='<div class="err">يرجى تعبئة جميع الحقول</div>';return}
   try{
     const r=await api('/auth/register',{method:'POST',body:JSON.stringify({nickname:n,password:p,guildId:g,phone:ph})})
-    setToken(r.token);setMaster(false);S.member=r.user;toast('مرحباً بك يا '+n+'!');go('home')
+    setToken(r.token);setMaster(false);S.member=r.user;await loadAll();toast('مرحباً بك يا '+n+'!');go('home')
   }catch(err){msg.innerHTML='<div class="err">'+err.message+'</div>'}
 }
 
@@ -473,7 +473,8 @@ function rProfile(mc){
       <p style="color:var(--gold-dim);font-size:.8rem;margin-bottom:4px;font-weight:600">${rnk?rnk.icon+' '+rnk.name:'عضو'}</p>
       ${extraTitle?'<p style="color:var(--gold);font-size:.75rem;margin-bottom:4px">✨ '+extraTitle+'</p>':''}
       <p style="color:var(--dim);font-size:.85rem;margin-bottom:8px">📞 ${m.phone||'غير محدد'}</p>
-      <p style="color:var(--gold);font-weight:700;margin-bottom:16px">⚔️ ${g?g.name:'غير محدد'} · 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
+      <p style="color:var(--gold);font-weight:700;margin-bottom:8px">⚔️ <span id="pGuildName">${g?g.name:'غير محدد'}</span> · 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
+      <div style="display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:12px"><select id="pGuildSel" style="font-size:.8rem;padding:6px 8px;width:auto">${S.guilds.map(gg=>'<option value="'+gg.id+'"'+(m.guild_id===gg.id?' selected':'')+'>'+gg.icon+' '+gg.name+'</option>').join('')}</select><button class="btn-gold btn-sm" onclick="changeGuild()" style="padding:4px 12px;font-size:.75rem">تغيير النقابة</button></div>
       ${m.inventory&&m.inventory.length?'<div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:12px">'+m.inventory.map(i=>IT[i.id]?'<span style="background:var(--panel-light);padding:4px 8px;border-radius:6px;font-size:.75rem;border:1px solid var(--line)">'+IT[i.id].icon+' '+IT[i.id].label+'</span>':'').join('')+'</div>':''}
       ${hasBG?'<label class="btn-outline btn-sm" style="cursor:pointer;display:inline-flex;width:100%;justify-content:center;margin-bottom:8px">🖼️ تغيير الخلفية<input type="file" accept="image/*" onchange="uploadBg(this)" style="display:none"></label>'+(customBg?'<button class="btn-outline btn-sm" style="width:100%;justify-content:center;color:#e74c3c" onclick="clearBg()">🗑 حذف الخلفية</button>':''):''}
       <button class="btn-outline btn-sm" style="width:100%;justify-content:center" onclick="ghome()">العودة للرئيسية</button>
@@ -487,6 +488,18 @@ function rProfile(mc){
     <p style="color:var(--dim);font-size:.7rem;text-align:center;margin-top:8px">رصيدك: 🪙 ${(m.coins||0).toLocaleString('ar')}</p>
   </div></div><div class="acct-card"><h2>🔍 بحث الأعضاء</h2><input id="mS" placeholder="لقب أو رقم هاتف" oninput="rMemberSearch(this.value)" style="width:100%;font-size:.85rem;padding:8px 10px;margin-bottom:10px"><div id="mSR"></div></div></div>`
   if(S.members.length)rMemberSearch('')
+}
+async function changeGuild(){
+  const sel=$('pGuildSel');if(!sel)return
+  const gid=sel.value,gn=sel.options[sel.selectedIndex].text
+  try{
+    const r=await api('/profile/guild',{method:'PUT',body:JSON.stringify({guildId:gid})})
+    S.member.guild_id=r.guild_id
+    const g=S.guilds.find(x=>x.id===gid)
+    const gnEl=$('pGuildName');if(gnEl)gnEl.textContent=g?g.name:'غير محدد'
+    toast('✅ تم تغيير النقابة إلى '+gn)
+    await loadAll()
+  }catch(e){toast('⚠️ '+e.message)}
 }
 async function uploadBg(input){
   const f=input.files[0];if(!f)return

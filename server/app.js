@@ -52,7 +52,7 @@ app.post('/api/auth/register', async (req, res) => {
       [id, dummyEmail, nickname, hash, phone, guildId, 'r_member']);
     await saveDBAsync();
     const token = jwt.sign({ id, nickname }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id, nickname, phone: phone || '', guild_id: guildId, coins: 100, inventory: [], rankId: 'r_member', avatar: '' } });
+    res.json({ token, user: { id, nickname, phone: phone || '', guild_id: guildId, coins: 100, inventory: [], rank_id: 'r_member', avatar: '', profile_bg: '', created_at: new Date().toISOString() } });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -146,6 +146,15 @@ app.put('/api/profile/background', auth, async (req, res) => {
   run("UPDATE users SET profile_bg='' WHERE id=?", [req.user.id]);
   await saveDBAsync();
   res.json({ ok: true });
+});
+app.put('/api/profile/guild', auth, async (req, res) => {
+  const { guildId } = req.body;
+  if (!guildId) return res.status(400).json({ error: 'Guild ID required' });
+  const guild = one('SELECT id FROM guilds WHERE id=?', [guildId]);
+  if (!guild) return res.status(404).json({ error: 'Guild not found' });
+  run('UPDATE users SET guild_id=? WHERE id=?', [guildId, req.user.id]);
+  await saveDBAsync();
+  res.json({ ok: true, guild_id: guildId });
 });
 
 app.get('/api/guilds', (req, res) => res.json(all('SELECT * FROM guilds')));
