@@ -459,11 +459,12 @@ function rProfile(mc){
   const avatarUrl=m.avatar?(m.avatar.startsWith('http')||m.avatar.startsWith('data:')?m.avatar:window.location.origin+m.avatar):''
   const hasBG=hasItem(m,'sh3')
   const customBg=m.profile_bg
-  const bgStyle=hasBG?customBg?' style="background:url(\''+customBg+'\') center/cover no-repeat;border:2px solid var(--gold);box-shadow:0 0 40px rgba(232,197,106,0.12);position:relative"':' style="background:linear-gradient(135deg,#2A1D0F,#3D2A15);border:2px solid var(--gold);box-shadow:0 0 40px rgba(232,197,106,0.12)"':''
+  const cardExtra=hasBG?customBg?'background:url(\''+customBg+'\') center/cover no-repeat fixed;border:2px solid var(--gold);position:relative;overflow:hidden':'background:linear-gradient(135deg,#2A1D0F,#3D2A15);border:2px solid var(--gold);box-shadow:0 0 40px rgba(232,197,106,0.12)':''
   const badges=[hasItem(m,'sh1')?'🏅':'',hasItem(m,'sh2')?'👑':'',hasItem(m,'sh5')?'⭐':''].filter(Boolean).join(' ')
   const extraTitle=hasItem(m,'sh4')?m.inventory.find(i=>i.id==='sh4')?.title||'':null
-  mc.innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card"${bgStyle} style="margin:0">
-    <div style="text-align:center">
+  mc.innerHTML=`<div class="sec"><div class="acct-split"><div class="acct-card" style="margin:0${cardExtra?';'+cardExtra:''}">
+    ${customBg?'<div style="position:absolute;inset:0;background:rgba(8,6,4,0.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border-radius:10px;z-index:0"></div>':''}
+    <div style="text-align:center;position:relative;z-index:1">
       <div class="avatar-upload">
         ${avatarUrl?'<img src="'+avatarUrl+'" class="avatar-img">':'<div class="avatar-placeholder">'+m.nickname.charAt(0)+'</div>'}
         <label class="btn-outline btn-sm" style="cursor:pointer;display:inline-flex">📷 تغيير الصورة<input type="file" accept="image/*" onchange="uploadAvatar(this)" style="display:none"></label>
