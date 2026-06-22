@@ -271,27 +271,22 @@ async function loadAll(){
       api('/shop'),api('/events'),api('/text-edits'),
       api('/settings/logo'),api('/settings/founder_id')
     ])
-    if(guilds.status==='fulfilled'){const gv=guilds.value;const isSeed=gv.length===4&&gv.every(g=>'agms'.includes(g.id));const hasCache=!!(S.guilds&&S.guilds.length);S.guilds=(!isSeed&&gv.length)?gv:(hasCache?S.guilds:DG)}
-    if(members.status==='fulfilled')S.members=members.value.length?members.value:(S.members||[])
-    if(ranks.status==='fulfilled')S.ranks=ranks.value.length?ranks.value:(S.ranks||DR)
-    if(hier.status==='fulfilled')S.hier=hier.value.length?hier.value:(S.hier||DC)
-    if(shop.status==='fulfilled')S.shop=shop.value.length?shop.value:(S.shop||[])
-    if(events.status==='fulfilled')S.events=events.value.length?events.value:(S.events||DE)
-    if(edits.status==='fulfilled')S.textEdits=Object.keys(edits.value||{}).length?edits.value:(S.textEdits||{})
-    if(logoRes.status==='fulfilled')S.logo=logoRes.value.value||(S.logo||'')
-    if(founderRes.status==='fulfilled')S.founderId=founderRes.value.value||(S.founderId||null)
+    if(guilds.status==='fulfilled')S.guilds=guilds.value.length?guilds.value:DG
+    if(members.status==='fulfilled')S.members=members.value
+    if(ranks.status==='fulfilled')S.ranks=ranks.value.length?ranks.value:DR
+    if(hier.status==='fulfilled')S.hier=hier.value.length?hier.value:DC
+    if(shop.status==='fulfilled')S.shop=shop.value
+    if(events.status==='fulfilled')S.events=events.value
+    if(edits.status==='fulfilled')S.textEdits=edits.value||{}
+    if(logoRes.status==='fulfilled')S.logo=logoRes.value.value||''
+    if(founderRes.status==='fulfilled')S.founderId=founderRes.value.value||null
     // Cache to localStorage (only if not seed data)
     if(guilds.status==='fulfilled'&&guilds.value.length&&!guilds.value.every(g=>'agms'.includes(g.id)))try{localStorage.setItem('sk_cache',JSON.stringify({guilds:S.guilds,members:S.members,ranks:S.ranks,hier:S.hier,shop:S.shop,events:S.events,edits:S.textEdits,logo:S.logo,founder:S.founderId,_ts:Date.now()}))}catch{}
   }catch(e){
-    // Fallback to localStorage cache
-    try{
-      const c=JSON.parse(localStorage.getItem('sk_cache'))
-      if(c){
-        S.guilds=c.guilds||DG;S.members=c.members||[];S.ranks=c.ranks||DR
-        S.hier=c.hier||DC;S.shop=c.shop||[];S.events=c.events||DE
-        S.textEdits=c.edits||{};S.logo=c.logo||'';S.founderId=c.founder||null
-      }
-    }catch{}
+    // Fallback: keep existing data or use defaults
+    S.guilds=S.guilds.length?S.guilds:DG;S.members=S.members||[];S.ranks=S.ranks.length?S.ranks:DR
+    S.hier=S.hier.length?S.hier:DC;S.shop=S.shop||[];S.events=S.events.length?S.events:DE
+    S.textEdits=S.textEdits||{};S.logo=S.logo||'';S.founderId=S.founderId||null
     toast('⚠️ فشل تحميل البيانات: '+e.message)
   }
   // Refresh session (ALWAYS, even if data loading failed)

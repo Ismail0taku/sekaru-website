@@ -154,10 +154,20 @@ function seedData() {
      ['sh5','رتبة نجم','⭐','نجمة بجانب اسمك',150]].forEach(i => s.run(i));
     s.free();
   }
-  const fc = db.exec("SELECT COUNT(*) as c FROM users WHERE nickname='ياتو'");
+  const fc = db.exec("SELECT COUNT(*) as c FROM users WHERE id='founder'");
   if (!fc[0]?.values[0][0]) {
-    db.run("INSERT INTO users (id,nickname,password_hash,rank_id) VALUES ('founder','ياتو','$2a$10$dummy','r_founder')");
+    const firstGuild = db.exec('SELECT id FROM guilds LIMIT 1');
+    const gid = firstGuild[0]?.values[0]?.[0] || '';
+    db.run("INSERT INTO users (id,nickname,password_hash,rank_id,guild_id,coins) VALUES ('founder','ياتو','$2a$10$dummy','r_founder',?,999999)", [gid]);
     saveDB();
+  } else {
+    // Ensure founder has guild_id if missing
+    const fg = one("SELECT guild_id FROM users WHERE id='founder'");
+    if (fg && !fg.guild_id) {
+      const firstGuild = db.exec('SELECT id FROM guilds LIMIT 1');
+      const gid = firstGuild[0]?.values[0]?.[0] || '';
+      run("UPDATE users SET guild_id=? WHERE id='founder'", [gid]);
+    }
   }
 }
 
