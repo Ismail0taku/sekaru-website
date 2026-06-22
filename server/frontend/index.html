@@ -280,16 +280,16 @@ async function loadAll(){
     S.textEdits=edits||{}
     S.logo=logoRes.value||''
     S.founderId=founderRes.value||null
-    // Refresh session
-    const tok=getToken()
-    S.master=getMaster()
-    if(tok&&!S.master){
-      try{
-        const me=await api('/auth/me')
-        S.member=me
-      }catch{S.member=null}
-    }else if(S.master){S.member=null}
   }catch(e){toast('⚠️ فشل تحميل البيانات: '+e.message)}
+  // Refresh session (ALWAYS, even if data loading failed)
+  const tok=getToken()
+  S.master=getMaster()
+  if(tok&&!S.master){
+    try{
+      const me=await api('/auth/me')
+      S.member=me
+    }catch{S.member=null}
+  }else if(S.master){S.member=null}
   S_loaded=true
 }
 
@@ -430,7 +430,7 @@ async function reg(){
   if(!n||!p||!g||!ph){msg.innerHTML='<div class="err">يرجى تعبئة جميع الحقول</div>';return}
   try{
     const r=await api('/auth/register',{method:'POST',body:JSON.stringify({nickname:n,password:p,guildId:g,phone:ph})})
-    setToken(r.token);S.member=r.user;toast('مرحباً بك يا '+n+'!');go('home')
+    setToken(r.token);setMaster(false);S.member=r.user;toast('مرحباً بك يا '+n+'!');go('home')
   }catch(err){msg.innerHTML='<div class="err">'+err.message+'</div>'}
 }
 
@@ -439,7 +439,7 @@ async function login(){
   if(!n||!p){msg.innerHTML='<div class="err">يرجى إدخال اللقب وكلمة السر</div>';return}
   try{
     const r=await api('/auth/login',{method:'POST',body:JSON.stringify({nickname:n,password:p})})
-    setToken(r.token);S.member=r.user;toast('أهلاً بعودتك يا '+r.user.nickname+'!');go('home')
+    setToken(r.token);setMaster(false);S.member=r.user;toast('أهلاً بعودتك يا '+r.user.nickname+'!');go('home')
   }catch(err){msg.innerHTML='<div class="err">'+err.message+'</div>'}
 }
 
